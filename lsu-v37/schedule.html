@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Schedule & Results · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.filter-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem; }
+.filter-btn { padding:6px 14px; border-radius:20px; border:0.5px solid rgba(240,234,248,0.1); background:transparent; color:rgba(240,234,248,0.4); font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; transition:all 0.15s; }
+.filter-btn:hover { color:#fff; border-color:rgba(240,234,248,0.3); }
+.filter-btn.active {  border-color:var(--purple); color:var(--gold); font-weight:500; }
+
+.game-list { display:flex; flex-direction:column; gap:6px; }
+.game-row {
+  display:grid;
+  grid-template-columns: 90px 1fr 120px 80px;
+  align-items:center;
+  gap:12px;
+  padding:12px 16px;
+  background:rgba(255,255,255,0.02);
+  border:0.5px solid rgba(255,255,255,0.06);
+  border-radius:10px;
+  transition:border-color 0.15s;
+}
+.game-row:hover { border-color:rgba(240,234,248,0.12); }
+.game-row.win  { border-left:2px solid #1D9E75; }
+.game-row.loss { border-left:2px solid #D85A30; }
+.game-row.hidden { display:none; }
+
+.game-date { font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.35); }
+.game-opp  { font-size:14px; color:#fff; font-weight:400; }
+.game-opp-meta { font-size:11px; color:rgba(240,234,248,0.3); margin-top:2px; font-family:'DM Mono',monospace; }
+.game-score { font-family:'DM Mono',monospace; font-size:13px; color:#fff; text-align:right; }
+.game-score.win  { color:#1D9E75; }
+.game-score.loss { color:#D85A30; }
+.game-result { display:flex; justify-content:flex-end; }
+.result-pill { font-family:'DM Mono',monospace; font-size:10px; font-weight:500; padding:3px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:0.06em; }
+.result-pill.W { background:rgba(29,158,117,0.15); color:#1D9E75; }
+.result-pill.L { background:rgba(216,90,48,0.15); color:#D85A30; }
+
+@media(max-width:560px){
+  .game-row { grid-template-columns:70px 1fr 90px 60px; gap:8px; padding:10px 12px; }
+  .game-opp { font-size:13px; }
+}
+
+.section-divider {
+  display:flex; align-items:center; gap:12px;
+  margin:1rem 0 0.5rem;
+}
+.div-label { font-family:'DM Mono',monospace; font-size:10px; color:var(--gold); text-transform:uppercase; letter-spacing:0.12em; white-space:nowrap; }
+.div-line  { flex:1; height:0.5px; background:rgba(253,208,35,0.2); }
+
+.summary-strip {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+  gap:10px;
+  margin-bottom:2rem;
+}
+.ss-card { background:rgba(255,255,255,0.03); border:0.5px solid rgba(240,234,248,0.07); border-radius:10px; padding:12px 14px; text-align:center; }
+.ss-val  { font-family:'Bebas Neue',sans-serif; font-size:28px; color:var(--gold); line-height:1; }
+.ss-lbl  { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.1em; margin-top:4px; }
+
+.ncaa-banner {
+  background:rgba(59,31,106,0.15);
+  border:0.5px solid rgba(59,31,106,0.4);
+  border-radius:10px;
+  padding:16px 20px;
+  margin-bottom:1rem;
+  display:flex; align-items:center; gap:12px;
+}
+.ncaa-icon { font-size:20px; }
+.ncaa-text { font-size:13px; color:rgba(240,234,248,0.65); font-weight:300; line-height:1.5; }
+.ncaa-text strong { color:#fff; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html" class="active">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="page-header">
+      <div class="page-eyebrow">Schedule & Results</div>
+      <h1 class="page-title">2025–26 Season</h1>
+      <p class="page-subtitle">Complete results · 35 games · Coach Kim Mulkey</p>
+    </div>
+
+    <div class="summary-strip">
+      <div class="ss-card"><div class="ss-val">29</div><div class="ss-lbl">Wins</div></div>
+      <div class="ss-card"><div class="ss-val" style="color:#D85A30">6</div><div class="ss-lbl">Losses</div></div>
+      <div class="ss-card"><div class="ss-val">95.0</div><div class="ss-lbl">PPG</div></div>
+      <div class="ss-card"><div class="ss-val">61.1</div><div class="ss-lbl">Opp PPG</div></div>
+      <div class="ss-card"><div class="ss-val">12–4</div><div class="ss-lbl">SEC</div></div>
+      <div class="ss-card"><div class="ss-val">Sweet 16</div><div class="ss-lbl" style="font-size:9px;">NCAA finish</div></div>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filter('all',this)">All games</button>
+      <button class="filter-btn" onclick="filter('W',this)">Wins only</button>
+      <button class="filter-btn" onclick="filter('L',this)">Losses only</button>
+      <button class="filter-btn" onclick="filter('sec',this)">SEC games</button>
+      <button class="filter-btn" onclick="filter('ncaa',this)">NCAA Tournament</button>
+      <button class="filter-btn" onclick="filter('home',this)">Home</button>
+      <button class="filter-btn" onclick="filter('away',this)">Away</button>
+    </div>
+
+    <div class="game-list" id="game-list"></div>
+  </div>
+</div>
+
+<script>
+const GAMES = [
+  // ── EXHIBITION ──────────────────────────────────
+  { date:"Oct 23",  opp:"Mississippi College",  result:"W", score:"148–46",  loc:"home",    tag:"",    note:"Exhibition" },
+  { date:"Oct 30",  opp:"Langston",             result:"W", score:"121–41",  loc:"home",    tag:"",    note:"Exhibition" },
+  // ── NON-CONFERENCE ──────────────────────────────
+  { date:"Nov 4",   opp:"Houston Christian",    result:"W", score:"108–55",  loc:"home",    tag:"",    note:"" },
+  { date:"Nov 6",   opp:"SE Louisiana",     result:"W", score:"115–26",  loc:"home",    tag:"",    note:"Field trip game" },
+  { date:"Nov 9",   opp:"at Georgia Southern",  result:"W", score:"118–70",  loc:"away",    tag:"",    note:"" },
+  { date:"Nov 12",  opp:"Charlotte",            result:"W", score:"117–59",  loc:"home",    tag:"",    note:"" },
+  { date:"Nov 17",  opp:"at Tulane",            result:"W", score:"101–71",  loc:"away",    tag:"",    note:"Fulwiley 8 steals" },
+  { date:"Nov 20",  opp:"Alcorn State",         result:"W", score:"112–49",  loc:"home",    tag:"",    note:"SEC record: 6th straight 100-pt game" },
+  { date:"Nov 28",  opp:"vs. Marist",           result:"W", score:"113–53",  loc:"neutral", tag:"",    note:"Paradise Jam — St. Thomas, USVI" },
+  { date:"Nov 29",  opp:"vs. Washington State", result:"W", score:"112–35",  loc:"neutral", tag:"",    note:"Paradise Jam championship — Joyner MVP" },
+  { date:"Dec 4",   opp:"at Duke",              result:"W", score:"93–77",   loc:"away",    tag:"",    note:"ACC/SEC Challenge — Cameron Indoor" },
+  { date:"Dec 7",   opp:"at New Orleans",       result:"W", score:"126–62",  loc:"away",    tag:"",    note:"Knox 12pts/12reb · Koval 22pts career-high" },
+  { date:"Dec 13",  opp:"vs. Louisiana Tech",   result:"W", score:"87–61",   loc:"neutral", tag:"",    note:"Compete 4 Cause Classic — Smoothie King Center" },
+  { date:"Dec 16",  opp:"Morgan State",         result:"W", score:"91–33",   loc:"home",    tag:"",    note:"Annual field trip game — 8,743 students" },
+  { date:"Dec 21",  opp:"UT Arlington",      result:"W", score:"110–45",  loc:"home",    tag:"",    note:"Knox 20pts · Fulwiley season-high 23pts" },
+  { date:"Dec 28",  opp:"Alabama State",        result:"W", score:"109–41",  loc:"home",    tag:"",    note:"" },
+  // ── SEC ─────────────────────────────────────────
+  { date:"Jan 1",   opp:"(11) Kentucky",        result:"L", score:"78–80",   loc:"home",    tag:"sec", note:"SEC opener" },
+  { date:"Jan 4",   opp:"at (12) Vanderbilt",   result:"L", score:"61–65",   loc:"away",    tag:"sec", note:"Fulwiley first career start" },
+  { date:"Jan 8",   opp:"at Georgia",           result:"W", score:"80–59",   loc:"away",    tag:"sec", note:"Johnson 25pts · first SEC win" },
+  { date:"Jan 11",  opp:"(2) Texas",            result:"W", score:"70–65",   loc:"home",    tag:"sec", note:"Huge home win over #2 Texas" },
+  { date:"Jan 18",  opp:"at (13) Oklahoma",     result:"W", score:"91–72",   loc:"away",    tag:"sec", note:"" },
+  { date:"Jan 22",  opp:"at Texas A&M",         result:"W", score:"98–54",   loc:"away",    tag:"sec", note:"" },
+  { date:"Jan 26",  opp:"Florida",              result:"W", score:"89–60",   loc:"home",    tag:"sec", note:"Richard 20pts season-high" },
+  { date:"Jan 29",  opp:"Arkansas",             result:"W", score:"92–70",   loc:"home",    tag:"sec", note:"" },
+  { date:"Feb 1",   opp:"(24) Alabama",         result:"W", score:"103–63",  loc:"home",    tag:"sec", note:"Bench scored 47 pts" },
+  { date:"Feb 5",   opp:"at (4) Texas",         result:"L", score:"64–77",   loc:"away",    tag:"sec", note:"" },
+  { date:"Feb 8",   opp:"at Auburn",            result:"W", score:"77–44",   loc:"away",    tag:"sec", note:"ZaKiyah Johnson 16pts" },
+  { date:"Feb 14",  opp:"(3) South Carolina",   result:"L", score:"72–79",   loc:"home",    tag:"sec", note:"" },
+  { date:"Feb 19",  opp:"at (17) Ole Miss",     result:"W", score:"78–70",   loc:"away",    tag:"sec", note:"" },
+  { date:"Feb 22",  opp:"Missouri",             result:"W", score:"108–55",  loc:"home",    tag:"sec", note:"" },
+  { date:"Feb 26",  opp:"Tennessee",            result:"W", score:"89–73",   loc:"home",    tag:"sec", note:"Williams 20pts/10reb · 1,500 career pts" },
+  { date:"Mar 1",   opp:"at Mississippi State", result:"W", score:"72–63",   loc:"away",    tag:"sec", note:"Regular season finale" },
+  // ── SEC TOURNAMENT ──────────────────────────────
+  { date:"Mar 5",   opp:"(7) Oklahoma",         result:"W", score:"112–78",  loc:"neutral", tag:"sec", note:"SEC Tournament QF — program record pts" },
+  { date:"Mar 6",   opp:"(3) South Carolina",   result:"L", score:"83–77",   loc:"neutral", tag:"sec", note:"SEC Tournament SF — Morrow injury" },
+  // ── NCAA TOURNAMENT ─────────────────────────────
+  { date:"Mar 20",  opp:"(15) Jacksonville",    result:"W", score:"116–58",  loc:"home",    tag:"ncaa", note:"NCAA Round 1 — #2 seed Sacramento 2" },
+  { date:"Mar 22",  opp:"(7) Texas Tech",       result:"W", score:"101–47",  loc:"home",    tag:"ncaa", note:"NCAA Round 2 — Sa'Myah Smith near triple-double" },
+  { date:"Mar 27",  opp:"(3) Duke",             result:"L", score:"85–87",   loc:"neutral", tag:"ncaa", note:"Sweet 16 — Fulwiley 28pts career-high · 2-pt loss" },
+];
+
+function renderGames(games) {
+  const list = document.getElementById("game-list");
+  let lastTag = null;
+  list.innerHTML = "";
+
+  const sections = {
+    "": "Non-conference",
+    "sec": "SEC season",
+    "ncaa": "NCAA Tournament"
+  };
+
+  // figure out which tags appear in filtered set
+  const tagsPresent = [...new Set(games.map(g => g.tag))];
+
+  games.forEach(g => {
+    // section divider
+    if (g.tag !== lastTag && tagsPresent.length > 1) {
+      const div = document.createElement("div");
+      div.className = "section-divider";
+      div.innerHTML = `<div class="div-line"></div><span class="div-label">${sections[g.tag] || g.tag}</span><div class="div-line"></div>`;
+      list.appendChild(div);
+      lastTag = g.tag;
+    }
+
+    const row = document.createElement("div");
+    row.className = `game-row ${g.result === "W" ? "win" : "loss"}`;
+    row.innerHTML = `
+      <div class="game-date">${g.date}</div>
+      <div>
+        <div class="game-opp">${g.opp}</div>
+        ${g.note ? `<div class="game-opp-meta">${g.note}</div>` : ""}
+      </div>
+      <div class="game-score ${g.result === "W" ? "win" : "loss"}">${g.score}</div>
+      <div class="game-result"><span class="result-pill ${g.result}">${g.result}</span></div>
+    `;
+    list.appendChild(row);
+  });
+
+  if (!games.length) {
+    list.innerHTML = `<p style="font-size:14px;color:rgba(240,234,248,0.3);padding:20px 0;">No games match this filter.</p>`;
+  }
+}
+
+function filter(type, btn) {
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  // exclude exhibitions from everything except "all"
+  let games = GAMES.filter(g => type === "all" || g.note !== "Exhibition");
+
+  if (type === "W")    games = games.filter(g => g.result === "W");
+  if (type === "L")    games = games.filter(g => g.result === "L");
+  if (type === "sec")  games = games.filter(g => g.tag === "sec");
+  if (type === "ncaa") games = games.filter(g => g.tag === "ncaa");
+  if (type === "home") games = games.filter(g => g.loc === "home");
+  if (type === "away") games = games.filter(g => g.loc === "away");
+
+  renderGames(games);
+}
+
+// initial render — skip exhibitions
+renderGames(GAMES.filter(g => g.note !== "Exhibition"));
+</script>
+<script>
+function toggleNav() {
+  const links = document.getElementById('topnav-links');
+  const btn   = document.getElementById('nav-hamburger');
+  links.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+// Close nav when a link is clicked (mobile)
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

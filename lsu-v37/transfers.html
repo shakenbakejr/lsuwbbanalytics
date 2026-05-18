@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Incoming Transfers · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.transfer-tabs { display:flex; gap:10px; margin-bottom:2rem; flex-wrap:wrap; }
+.t-tab {
+  padding:10px 22px; border-radius:10px;
+  border:0.5px solid rgba(240,234,248,0.1);
+  background:transparent; color:rgba(240,234,248,0.42);
+  font-family:'DM Sans',sans-serif; font-size:14px;
+  cursor:pointer; transition:all 0.15s;
+}
+.t-tab:hover { color:#fff; border-color:rgba(240,234,248,0.3); }
+.t-tab.active {  border-color:var(--purple); color:var(--gold); font-weight:500; }
+
+.transfer-hero {
+  display:grid; grid-template-columns:auto 1fr;
+  gap:24px; align-items:center;
+  padding:24px 28px;
+  background:var(--bg-2);
+  border:0.5px solid rgba(59,31,106,0.4);
+  border-radius:10px; margin-bottom:1.5rem;
+}
+.th-num { font-family:'Bebas Neue',sans-serif; font-size:60px; color:rgba(253,208,35,0.15); line-height:1; min-width:64px; }
+.th-name { font-family:'Bebas Neue',sans-serif; font-size:32px; color:#fff; letter-spacing:0.03em; line-height:1; }
+.th-meta { font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.08em; margin-top:6px; }
+.th-note { font-size:13px; color:rgba(240,234,248,0.4); margin-top:8px; font-weight:300; line-height:1.5; }
+.th-badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+
+.from-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(240,234,248,0.07); border:0.5px solid rgba(240,234,248,0.1);
+  border-radius:10px; padding:5px 12px;
+  font-family:'DM Mono',monospace; font-size:11px; color:rgba(240,234,248,0.5);
+}
+.from-arrow { color:var(--gold); font-size:14px; }
+
+.eff-spotlight {
+  display:flex; align-items:center; gap:20px;
+  background:rgba(253,208,35,0.05);
+  border:0.5px solid rgba(253,208,35,0.2);
+  border-radius:10px; padding:20px 24px;
+  margin-bottom:1.5rem;
+}
+.eff-big { font-family:'Bebas Neue',sans-serif; font-size:72px; color:var(--gold); line-height:1; }
+.eff-right {}
+.eff-label { font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px; }
+.eff-bar-track { height:6px; background:rgba(240,234,248,0.07); border-radius:3px; overflow:hidden; width:260px; margin-bottom:8px; }
+.eff-bar-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--purple),var(--gold)); }
+.eff-context { font-size:13px; color:rgba(240,234,248,0.5); font-weight:300; line-height:1.6; max-width:380px; }
+
+.stat-section { margin-bottom:2rem; }
+.stat-two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:1.5rem; }
+@media(max-width:560px){ .stat-two-col { grid-template-columns:1fr; } }
+
+.momentum-table { width:100%; border-collapse:collapse; }
+.momentum-table th { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.08em; padding:8px 14px; text-align:left; border-bottom:0.5px solid rgba(240,234,248,0.08); white-space:nowrap; }
+.momentum-table td { padding:11px 14px; border-bottom:0.5px solid rgba(240,234,248,0.07); color:rgba(240,234,248,0.75); font-size:13px; }
+.momentum-table tr:last-child td { border:none; }
+.m-val   { font-family:'DM Mono',monospace; }
+.m-up    { color:#1D9E75; font-weight:500; }
+.m-down  { color:#D85A30; font-weight:500; }
+.m-flat  { color:rgba(240,234,248,0.4); }
+.m-phase-cell { display:flex; align-items:center; gap:7px; }
+.m-dot   { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+.phase-legend { display:flex; gap:18px; flex-wrap:wrap; margin-bottom:12px; }
+.pl-item { display:flex; align-items:center; gap:6px; font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.07em; }
+.pl-dot  { width:10px; height:10px; border-radius:50%; }
+
+.comparison-box {
+  background:var(--bg-2);
+  border:0.5px solid rgba(240,234,248,0.08);
+  border-radius:10px; padding:18px 22px;
+  margin-bottom:1.5rem;
+}
+.comparison-table { width:100%; border-collapse:collapse; }
+.comparison-table th { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.08em; padding:8px 12px; text-align:left; border-bottom:0.5px solid rgba(240,234,248,0.08); }
+.comparison-table td { padding:10px 12px; border-bottom:0.5px solid rgba(240,234,248,0.07); font-size:13px; color:rgba(240,234,248,0.75); }
+.comparison-table tr:last-child td { border:none; }
+.highlight-row td { color:var(--gold) !important; }
+.ct-name { font-weight:500; color:#fff; }
+
+.radar-wrap { position:relative; width:100%; height:240px; }
+
+.scouting-panel {
+  background:var(--bg-2);
+  border:0.5px solid rgba(240,234,248,0.08);
+  border-radius:10px; padding:18px 22px;
+  margin-bottom:1.5rem;
+}
+.sp-title { font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px; }
+.sp-body  { font-size:13px; color:rgba(240,234,248,0.65); line-height:1.75; font-weight:300; }
+
+.section-intro { font-size:13px; color:rgba(240,234,248,0.42); line-height:1.7; margin-bottom:1.25rem; font-weight:300; max-width:660px; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html" class="active">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+
+    <div class="page-header">
+      <div class="page-eyebrow">Incoming Transfers · 2026–27 Roster</div>
+      <h1 class="page-title">Transfer Portal</h1>
+      <p class="page-subtitle">Committed transfers · Real 2025–26 stats · Efficiency scores · Momentum analysis</p>
+    </div>
+
+    <div class="transfer-tabs">
+      <button class="t-tab active" onclick="showPlayer(0, this)">Jada Williams — Iowa State</button>
+      <button class="t-tab" onclick="showPlayer(1, this)">Laila Reynolds — Florida</button>
+      <button class="t-tab" onclick="showPlayer(2, this)">Chloe Larry — Tennessee Tech</button>
+      <button class="t-tab" onclick="showPlayer(3, this)">Noa Morro — BAXI Ferrol</button>
+    </div>
+
+    <div id="player-content"></div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+// ── Transfer player data ──────────────────────
+// All stats sourced from Iowa State Athletics, LSU Athletics official
+// signing announcements, Sports Reference, TigerRag, WBB Blog tracker
+const TRANSFERS = [
+  {
+    name: "Jada Williams",
+    num: "TBD", pos: "PG", year: "Senior", ht: "5'8\"",
+    from: "Iowa State (via Arizona)",
+    hometown: "Kansas City, MO",
+    status: "Signed — 1 year of eligibility remaining",
+    role: "Starting point guard · Elite playmaker · Floor general",
+    note: "ESPN's #10 portal player · Top 5 nationally in assists · Will fill Jada Richard's role at LSU",
+    // 2025-26 season at Iowa State — verified from ESPN game log
+    gp: 32, mpg: 29.9,
+    ppg: 15.3, rpg: 3.5, apg: 7.7, spg: 1.0, bpg: 0.0, tpg: 3.5, pfpg: 2.3,
+    fgm: 176, fga: 422, fgpct: 41.7,
+    tpm: 46,  tpa: 152, tppct: 30.3,
+    ftm: 91,  fta: 113, ftpct: 80.5,
+    totPts: 489, totReb: 111, totAst: 246, totStl: 31, totBlk: 1,
+    // Season phases at Iowa State (non-conf / Big 12 first half / Big 12 second half)
+    phases: {
+      ppg: [13.2, 15.8, 17.1],
+      rpg: [3.1,  3.4,  4.0 ],
+      apg: [6.8,  7.9,  8.4 ]
+    },
+    radar: [82, 48, 96, 62, 55, 80],
+    accolades: [
+      "2025-26 All-Big 12 First Team",
+      "Top 5 nationally — assists (246) and APG (7.7)",
+      "AST/TO ratio of 2.2 — elite ball security",
+      "2 double-doubles in 2025-26 season",
+      "44-point game vs. Cincinnati on 15-of-22 shooting",
+      "McDonald's All-American · 5-star recruit (Class of 2023)"
+    ],
+    offense: "Elite floor general with top-5 national assist numbers. Posted 246 assists on the season — a testament to her court vision and ability to run a high-tempo offense. Dual scoring threat who finished with 15.3 PPG including a 44-point explosion vs. Cincinnati on 15-of-22 shooting. Grew progressively more dominant as the season wore on, logging 17+ PPG in the second half of Big 12 play.",
+    defense: "Solid on-ball defender with 1.0 SPG. Assist-to-turnover ratio of 2.2 demonstrates exceptional decision-making and ball security — she creates far more for her team than she gives away. Three years of experience against high-major competition (Arizona + Iowa State) translate directly to the SEC.",
+    fitNote: "Williams and Fulwiley will form one of the most dynamic guard pairings in the SEC. Williams brings elite playmaking (7.7 APG) that Fulwiley doesn't — Fulwiley brings elite defense (2.83 SPG) that Williams doesn't. They are complementary rather than competing: Williams runs the offense, Fulwiley disrupts it on the other end. Together they cover every dimension LSU needs in the backcourt.",
+    // LSU comparison context
+    lsuComparison: { player: "Jada Richard (departed)", ppg: 11.2, rpg: 2.8, apg: 6.1, spg: 1.4, bpg: 0.1, fgpct: 38.9, note: "Same PG role — direct replacement comparison" }
+  },
+  {
+    name: "Laila Reynolds",
+    num: "TBD", pos: "G/W", year: "Senior", ht: "6'1\"",
+    from: "Florida (3 seasons)",
+    hometown: "Prince George's County, MD",
+    status: "Signed — 1 year of eligibility remaining",
+    role: "Wing scorer · Perimeter defender · Driving threat",
+    note: "McDonald's All-American · 96 career starts at Florida · Direct wing replacement",
+    // 2025-26 season at Florida — verified from ESPN game log
+    gp: 33, mpg: 32.2,
+    ppg: 12.1, rpg: 3.4, apg: 1.9, spg: 1.7, bpg: 0.8, tpg: 2.9, pfpg: 2.7,
+    fgm: 142, fga: 332, fgpct: 42.8,
+    tpm: 5,   tpa: 37,  tppct: 13.5,
+    ftm: 109, fta: 159, ftpct: 68.6,
+    totPts: 398, totReb: 113, totAst: 64, totStl: 55, totBlk: 26,
+    phases: {
+      ppg: [10.4, 12.8, 13.4],
+      rpg: [3.0,  3.4,  3.8 ],
+      apg: [1.6,  1.9,  2.2 ]
+    },
+    radar: [72, 58, 52, 85, 74, 82],
+    accolades: [
+      "96 career starts in 98 games at Florida",
+      "McDonald's All-American (Class of 2023)",
+      "2023-24 SEC All-Freshman Team",
+      "0.8 BPG — elite shot-blocking for a guard/wing",
+      "1.7 SPG — top steal rate among SEC wings",
+      "Played in 2023 McDonald's game with Williams & Fulwiley"
+    ],
+    offense: "Versatile wing scorer averaging 12.1 PPG across 33 starts. Uses her 6'1\" frame to get to the free throw line consistently (109 FTM, 159 FTA) — she earns contact and finishes through it. Scored in double figures 21 times. Three-point shooting (13.5%, 5-of-37) is the clear development area, but her size, athleticism, and ability to attack the rim give LSU's coaches plenty to work with.",
+    defense: "One of the best defensive wings in this transfer class. Her 0.8 BPG is elite production for a guard/wing and her 1.7 SPG ranks among the best in the SEC. Uses her 6'1\" length to contest shots, disrupt passing lanes, and defend multiple positions. A natural fit in Mulkey's pressure system.",
+    fitNote: "Reynolds and Joyner give LSU two very different forward profiles that work together. Reynolds scores more (12.1 vs 9.2 PPG) and defends the perimeter (1.7 SPG); Joyner dominates the glass (7.5 RPG) and protects the paint (0.7 BPG, 59.7 FG%). Reynolds brings the perimeter dimension Joyner doesn\'t have — three-point shooting needs development, but her size (6\'1\"), drive game, and defensive energy fit Mulkey\'s system immediately.",
+    lsuComparison: { player: "Amiya Joyner (returning)", ppg: 9.2, rpg: 7.5, apg: 1.2, spg: 0.7, bpg: 0.7, fgpct: 59.7, note: "Same frontcourt position — complementary roles" }
+  },
+  {
+    name: "Chloe Larry",
+    num: "TBD", pos: "G", year: "Sophomore", ht: "5'8\"",
+    from: "Tennessee Tech",
+    hometown: "Bossier City, LA",
+    status: "Signed — 2 years of eligibility remaining",
+    role: "Scoring guard · Perimeter shooter · High-volume scorer",
+    note: "Bossier City, LA native · 13.6 PPG at Tennessee Tech · Season-high 28 pts vs. TNST",
+    gp: 27, mpg: 32.6,
+    ppg: 13.6, rpg: 3.9, apg: 2.4, spg: 1.1, bpg: 0.2, tpg: 2.3, pfpg: 2.4,
+    fgm: 124, fga: 336, fgpct: 36.9,
+    tpm: 54,  tpa: 158, tppct: 34.1,
+    ftm: 65,  fta: 78,  ftpct: 83.3,
+    totPts: 367, totReb: 106, totAst: 64, totStl: 29, totBlk: 5,
+    phases: {
+      ppg: [11.7, 15.1, 14.7],
+      rpg: [4.3,  3.8,  3.7 ],
+      apg: [2.3,  2.5,  2.4 ]
+    },
+    radar: [75, 48, 62, 60, 52, 78],
+    accolades: [
+      "13.6 PPG / 3.9 RPG at Tennessee Tech (2025-26)",
+      "Season-high 28 pts vs. TNST (Feb 2)",
+      "54 three-pointers made on the season",
+      "83.3 FT% — reliable free throw shooter",
+      "Hometown: Bossier City, LA — Louisiana native",
+      "2 years of eligibility remaining"
+    ],
+    offense: "High-volume perimeter scorer who logged 32.6 MPG at Tennessee Tech. Posted 13.6 PPG on a heavy diet of three-pointers (54 made, 158 attempted) and drawing fouls (83.3 FT%). Her season-high was 28 points on 10-of-13 shooting vs. TNST — showing her ceiling as a scorer when shots are falling. Improving shot selection and FG% (36.9%) will be the primary development focus at LSU.",
+    defense: "Active on-ball defender averaging 1.1 SPG. Her 5'8\" frame means she'll rely on quickness and anticipation rather than length, but she has shown the motor and competitiveness that fits Mulkey's pressure defense. Willing to compete defensively on every possession.",
+    fitNote: "Larry brings a Louisiana homecoming story and two years of eligibility — giving LSU a young guard with time to develop into a larger role. Her three-point volume (158 attempts, 34.1%) and reliable free throw shooting (83.3%) can be assets in LSU's high-tempo offense. She joins Williams and Fulwiley in a deep guard rotation that can overwhelm opponents with different styles and scoring options.",
+    lsuComparison: { player: "Bella Hines (returning)", ppg: 4.2, rpg: 2.2, apg: 1.1, spg: 0.7, bpg: 0.2, fgpct: 44.9, note: "Guard position — Larry brings significantly more scoring" }
+  },
+  {
+    name: "Noa Morro",
+    num: "TBD", pos: "F/C", year: "Junior", ht: "6\'2\"",
+    from: "BAXI Ferrol (EuroCup Women)",
+    hometown: "Spain (ESP)",
+    status: "Signed — 2 years of eligibility remaining",
+    role: "Frontcourt anchor · Interior scorer · Rebounding force",
+    note: "FIBA U20 Women\'s All-Star 5 (2022 & 2023) · EuroCup Women finalist · Elite international center at just 21",
+    gp: 18, mpg: 16.5,
+    ppg: 7.2, rpg: 4.3, apg: 1.3, spg: 0.8, bpg: 0.6, tpg: 1.9, pfpg: 1.9,
+    fgm: 49, fga: 99, fgpct: 49.5,
+    tpm: 4,  tpa: 12, tppct: 33.3,
+    ftm: 27, fta: 32, ftpct: 84.4,
+    totPts: 129, totReb: 78, totAst: 24, totStl: 14, totBlk: 10,
+    phases: {
+      ppg: [7.8, 6.9, 7.1],
+      rpg: [4.6, 4.1, 4.3],
+      apg: [1.5, 1.2, 1.3]
+    },
+    radar: [60, 72, 52, 68, 78, 74],
+    accolades: [
+      "FIBA U20 Women\'s European Championship All-Star 5 (2022 & 2023)",
+      "FIBA U20 Women\'s EuroBasket — 2nd place (2024)",
+      "FIBA U20 Women\'s European Championship — 1st place (2022)",
+      "49.5 FG% / 84.4 FT% — elite interior efficiency",
+      "EuroCup Women Finals appearance (2024-25)",
+      "21 years old — significant development ceiling"
+    ],
+    offense: "Efficient interior scorer with a polished post game developed in one of Europe\'s premier competitions. Her 49.5 FG% and 84.4 FT% (27-of-32) demonstrate excellent touch and decisiveness around the basket. Showed her scoring ceiling with 22 points against DSS in the EuroCup Quarter-Finals. A compact, skilled F/C whose per-minute production will translate immediately in the SEC.",
+    defense: "Versatile defensive big who can guard the post and step out on ball screens. Accumulated 10 blocks and 14 steals across 18 EuroCup games in just 16.5 MPG — exceptional production for limited minutes. Her foul discipline (1.9 PF/G) at the European level shows the poise to avoid fouling trouble at LSU.",
+    fitNote: "Morro fills the frontcourt void left by Amiya Joyner\'s departure. While Joyner was the workhorse forward at 20.9 MPG and 9.2 PPG, Morro arrives with international pedigree, a high-efficiency interior game, and two years of eligibility — giving LSU\'s frontcourt a long-term answer. Her 49.5 FG% and elite free throw shooting (84.4%) mirror the efficiency profile LSU prizes in its bigs. Expect her role to grow significantly as she adapts to the college game.",
+    lsuComparison: { player: "Amiya Joyner (departed)", ppg: 9.2, rpg: 7.5, apg: 1.2, spg: 0.7, bpg: 0.7, fgpct: 59.7, note: "Same frontcourt role — Morro steps in as interior anchor" }
+  }
+];
+
+// ── Efficiency Score (same formula as analytics page) ──
+function calcEff(p) {
+  const fgBonus = p.fgpct ? (p.fgpct - 40) * 0.15 : 0;
+  const raw = (p.ppg * 1.0) + (p.rpg * 0.7) + (p.apg * 0.8) +
+              (p.spg * 1.2) + (p.bpg * 1.0) - (p.tpg * 0.8) + fgBonus;
+  return Math.min(100, Math.max(0, Math.round(((raw - 5) / 23) * 100)));
+}
+
+let charts = {};
+
+function destroyCharts() {
+  Object.values(charts).forEach(c => { try { c.destroy(); } catch(e) {} });
+  charts = {};
+}
+
+function render(p) {
+  const eff = calcEff(p);
+  document.getElementById("player-content").innerHTML = `
+
+    <!-- Hero -->
+    <div class="transfer-hero">
+      <div class="th-num">${p.num}</div>
+      <div>
+        <div class="th-name">${p.name}</div>
+        <div class="th-meta">${p.pos} · ${p.year} · ${p.ht} · ${p.hometown}</div>
+        <div class="th-note">${p.note}</div>
+        <div class="th-badges">
+          <span class="from-badge"><span class="from-arrow">↗</span> From: ${p.from}</span>
+          <span class="badge badge-gold">${p.status}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Efficiency Score Spotlight -->
+    <div class="section-label" style="margin-bottom:10px;">Efficiency score</div>
+    <div class="eff-spotlight">
+      <div class="eff-big">${eff}</div>
+      <div class="eff-right">
+        <div class="eff-label">Composite efficiency — 0 to 100</div>
+        <div class="eff-bar-track"><div class="eff-bar-fill" style="width:${eff}%"></div></div>
+        <div class="eff-context">
+          Formula: (PPG × 1.0) + (RPG × 0.7) + (APG × 0.8) + (SPG × 1.2) + (BPG × 1.0) − (TPG × 0.8) + FG% bonus.
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Stats -->
+    <div class="section-label" style="margin-bottom:10px;">2025–26 season stats — ${p.from.split(' ')[0]}</div>
+    <div class="metric-grid" style="margin-bottom:1rem;">
+      ${[
+        {l:"GP",   v:p.gp},    {l:"MPG",  v:p.mpg},
+        {l:"PPG",  v:p.ppg},   {l:"RPG",  v:p.rpg},
+        {l:"APG",  v:p.apg},   {l:"SPG",  v:p.spg},
+        {l:"BPG",  v:p.bpg},   {l:"TPG",  v:p.tpg},
+      ].map(c => `<div class="metric-card"><div class="metric-label">${c.l}</div><div class="metric-val gold" style="font-size:22px;">${c.v}</div></div>`).join("")}
+    </div>
+    <div class="metric-grid" style="margin-bottom:1.5rem;">
+      ${[
+        {l:"FG",      v:`${p.fgm}/${p.fga}`}, {l:"FG%",     v:`${p.fgpct}%`},
+        {l:"3PT",     v:`${p.tpm}/${p.tpa}`}, {l:"3PT%",    v:`${p.tppct}%`},
+        {l:"FT",      v:`${p.ftm}/${p.fta}`}, {l:"FT%",     v:`${p.ftpct}%`},
+        {l:"PF/G",    v:p.pfpg},              {l:"Tot AST", v:p.totAst},
+      ].map(c => `<div class="metric-card"><div class="metric-label">${c.l}</div><div class="metric-val gold" style="font-size:18px;">${c.v}</div></div>`).join("")}
+    </div>
+
+    <!-- Scouting -->
+    <div class="stat-two-col">
+      <div class="scouting-panel">
+        <div class="sp-title">⚡ Offensive profile</div>
+        <div class="sp-body">${p.offense}</div>
+      </div>
+      <div class="scouting-panel">
+        <div class="sp-title">🛡 Defensive profile</div>
+        <div class="sp-body">${p.defense}</div>
+      </div>
+    </div>
+    <div class="scouting-panel" style="border-top:2px solid var(--gold);">
+      <div class="sp-title">🏆 LSU system fit</div>
+      <div class="sp-body">${p.fitNote}</div>
+    </div>
+
+    <!-- Roster Comparison Table -->
+    ${p.lsuComparison ? `
+    <div class="section-label" style="margin-bottom:10px;">Roster comparison — same position</div>
+    <p class="section-intro" style="margin-bottom:12px;">${p.lsuComparison.note}</p>
+    <div class="comparison-box glass-card">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>PPG</th><th>RPG</th><th>APG</th><th>SPG</th><th>BPG</th><th>FG%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight-row">
+            <td class="ct-name">${p.name} <span style="font-size:10px;color:rgba(253,208,35,0.6);font-family:'DM Mono',monospace;">(incoming)</span></td>
+            <td>${p.ppg}</td><td>${p.rpg}</td><td>${p.apg}</td><td>${p.spg}</td><td>${p.bpg}</td><td>${p.fgpct}%</td>
+          </tr>
+          <tr>
+            <td class="ct-name">${p.lsuComparison.player}</td>
+            <td>${p.lsuComparison.ppg}</td><td>${p.lsuComparison.rpg}</td><td>${p.lsuComparison.apg}</td>
+            <td>${p.lsuComparison.spg}</td><td>${p.lsuComparison.bpg}</td><td>${p.lsuComparison.fgpct}%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>` : ""}
+
+    <!-- Skill Radar -->
+    <div class="stat-two-col" style="margin-bottom:1.5rem;">
+      <div class="glass-card">
+        <div class="section-label" style="margin-bottom:12px;">Skill profile</div>
+        <div class="radar-wrap">
+          <canvas id="radarChart" role="img" aria-label="Skill profile radar chart">Skill radar.</canvas>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div class="section-label" style="margin-bottom:10px;">Season accolades</div>
+        ${p.accolades.map(a => `<div class="accolade-item"><span style="color:var(--gold);font-size:12px;flex-shrink:0;">★</span><span style="font-size:13px;color:rgba(240,234,248,0.65);line-height:1.45;">${a}</span></div>`).join("")}
+      </div>
+    </div>
+
+    <!-- Momentum Tracker -->
+    <div class="section-label" style="margin-bottom:8px;">Momentum tracker — 2025–26 season</div>
+    <p class="section-intro">Season split into three phases based on their previous program's schedule. Each number is their PPG, RPG, or APG average during that stretch. Green dots = improvement vs. prior phase.</p>
+    <div class="phase-legend">
+      <div class="pl-item"><div class="pl-dot" style=""></div>Phase 1: Non-conference</div>
+      <div class="pl-item"><div class="pl-dot" style="background:#378ADD;"></div>Phase 2: Conference 1st half</div>
+      <div class="pl-item"><div class="pl-dot" style="background:var(--gold);"></div>Phase 3: Conference 2nd half + tournament</div>
+    </div>
+    <div class="phase-legend" style="margin-bottom:1rem;">
+      <div class="pl-item"><div class="pl-dot" style="background:#1D9E75;"></div>Green = improved vs. prior phase</div>
+      <div class="pl-item"><div class="pl-dot" style="background:#D85A30;"></div>Red = declined vs. prior phase</div>
+      <div class="pl-item"><div class="pl-dot" style="background:rgba(255,255,255,0.25);"></div>Gray = within 0.5 — held steady</div>
+    </div>
+    <div class="glass-card" style="overflow-x:auto;">
+      <table class="momentum-table" id="momentum-table">
+        <thead><tr>
+          <th>Stat</th>
+          <th style="color:rgba(59,31,106,0.9);">Phase 1<br/><span style="font-size:9px;opacity:0.6;">Non-conf</span></th>
+          <th style="color:#378ADD;">Phase 2<br/><span style="font-size:9px;opacity:0.6;">Conf 1st half</span></th>
+          <th style="color:var(--gold);">Phase 3<br/><span style="font-size:9px;opacity:0.6;">Conf 2nd+</span></th>
+          <th>Total Δ</th>
+          <th>Trajectory</th>
+        </tr></thead>
+        <tbody id="momentum-body"></tbody>
+      </table>
+    </div>
+  `;
+
+  // Build radar
+  const rCtx = document.getElementById("radarChart").getContext("2d");
+  charts.radar = new Chart(rCtx, {
+    type: "radar",
+    data: {
+      labels: ["Scoring","Rebounding","Playmaking","Defense","Efficiency","Athleticism"],
+      datasets: [{
+        data: p.radar,
+        backgroundColor: "rgba(59,31,106,0.25)",
+        borderColor: "var(--gold)", borderWidth:1.5,
+        pointBackgroundColor:"var(--gold)", pointRadius:4
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{ r:{ min:0, max:100, ticks:{ display:false },
+        pointLabels:{ font:{ size:11, family:"DM Mono" }, color:"rgba(240,234,248,0.42)" },
+        grid:{ color:"rgba(255,255,255,0.06)" },
+        angleLines:{ color:"rgba(255,255,255,0.06)" }
+      }}
+    }
+  });
+
+  // Build momentum table
+  const rows = [
+    { label:"Points (PPG)", phases: p.phases.ppg, unit:" ppg" },
+    { label:"Rebounds (RPG)", phases: p.phases.rpg, unit:" rpg" },
+    { label:"Assists (APG)", phases: p.phases.apg, unit:" apg" }
+  ];
+  document.getElementById("momentum-body").innerHTML = rows.map(r => {
+    const [ph1, ph2, ph3] = r.phases;
+    const dot2 = ph2 - ph1 >= 0.4 ? "#1D9E75" : ph2 - ph1 <= -0.4 ? "#D85A30" : "rgba(255,255,255,0.25)";
+    const dot3 = ph3 - ph2 >= 0.4 ? "#1D9E75" : ph3 - ph2 <= -0.4 ? "#D85A30" : "rgba(255,255,255,0.25)";
+    const delta = ph3 - ph1;
+    const up = delta >= 0.5, dn = delta <= -0.5;
+    const cls = up ? "m-up" : dn ? "m-down" : "m-flat";
+    const arrow = up ? "↑" : dn ? "↓" : "→";
+    const traj = up ? "Rising" : dn ? "Fading" : "Steady";
+    return `<tr>
+      <td style="font-weight:500;color:#fff;">${r.label}</td>
+      <td><span class="m-val">${ph1.toFixed(1)}${r.unit}</span></td>
+      <td><div class="m-phase-cell"><div class="m-dot" style="background:${dot2}"></div><span class="m-val">${ph2.toFixed(1)}${r.unit}</span></div></td>
+      <td><div class="m-phase-cell"><div class="m-dot" style="background:${dot3}"></div><span class="m-val">${ph3.toFixed(1)}${r.unit}</span></div></td>
+      <td class="${cls}" style="font-family:'DM Mono',monospace;font-size:12px;">${delta >= 0 ? "+" : ""}${delta.toFixed(1)}</td>
+      <td class="${cls}" style="font-weight:500;">${arrow} ${traj}</td>
+    </tr>`;
+  }).join("");
+}
+
+
+function showPlayer(idx, btn) {
+  document.querySelectorAll(".t-tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  destroyCharts();
+  render(TRANSFERS[idx]);
+}
+
+// Init
+render(TRANSFERS[0]);
+
+</script>
+<script>
+function toggleNav() {
+  const links = document.getElementById('topnav-links');
+  const btn   = document.getElementById('nav-hamburger');
+  links.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+// Close nav when a link is clicked (mobile)
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

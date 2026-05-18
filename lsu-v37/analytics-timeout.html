@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Timeout Analysis · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.section-block { margin-bottom:3rem; }
+.section-intro { font-size:13px; color:rgba(240,234,248,0.42); line-height:1.7; margin-bottom:1.25rem; font-weight:300; max-width:660px; }
+
+/* ── Summary bar ── */
+.to-summary-bar {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:1.5rem;
+}
+.to-sum-card {
+  background:rgba(255,255,255,0.03); border:0.5px solid rgba(240,234,248,0.08);
+  border-radius:10px; padding:14px 16px; text-align:center;
+}
+.to-sum-label { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.to-sum-val   { font-family:'Bebas Neue',sans-serif; font-size:28px; line-height:1; }
+
+/* ── Cards ── */
+.to-section-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:2rem;
+}
+@media(max-width:900px){ .to-section-grid{ grid-template-columns:1fr; } }
+
+.to-card {
+  background:rgba(255,255,255,0.02); border:0.5px solid rgba(240,234,248,0.08);
+  border-radius:10px; padding:20px 18px;
+}
+.to-card-type { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+.to-ppp       { font-family:'Bebas Neue',sans-serif; font-size:48px; line-height:1; margin-bottom:2px; }
+.to-ppp-label { font-size:11px; color:rgba(240,234,248,0.3); margin-bottom:14px; }
+.to-divider   { height:0.5px; background:rgba(255,255,255,0.06); margin:14px 0; }
+.to-stat-row  { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.to-stat-label{ font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.3); text-transform:uppercase; min-width:50px; }
+.to-bar-track { flex:1; height:3px; background:rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
+.to-bar-fill  { height:100%; border-radius:10px; }
+.to-stat-val  { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.5); min-width:36px; text-align:right; }
+.to-q-grid    { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:14px; }
+.to-q-cell    { background:rgba(255,255,255,0.03); border:0.5px solid rgba(240,234,248,0.07); border-radius:10px; padding:8px 6px; text-align:center; }
+.to-q-label   { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.3); text-transform:uppercase; margin-bottom:4px; }
+.to-q-ppp     { font-family:'Bebas Neue',sans-serif; font-size:18px; line-height:1; }
+.to-q-poss    { font-family:'DM Mono',monospace; font-size:8px; color:rgba(255,255,255,0.25); margin-top:2px; }
+
+/* ── Three col ── */
+.to-three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:1.5rem; }
+@media(max-width:700px){ .to-three-col{ grid-template-columns:1fr; } }
+
+/* ── Detail table ── */
+.to-detail-table { width:100%; border-collapse:collapse; }
+.to-detail-table th {
+  font-family:'DM Mono',monospace; font-size:10px;
+  color:rgba(240,234,248,0.3); text-transform:uppercase;
+  letter-spacing:0.08em; padding:8px 14px;
+  text-align:left; border-bottom:0.5px solid rgba(240,234,248,0.08); white-space:nowrap;
+}
+.to-detail-table td {
+  padding:10px 14px; border-bottom:0.5px solid rgba(240,234,248,0.07);
+  font-size:12px; color:rgba(240,234,248,0.7);
+}
+.to-detail-table tr:last-child td { border:none; }
+.to-detail-table tr:hover td { background:rgba(255,255,255,0.02); }
+
+/* ── W/L cards ── */
+.to-wl-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:1.5rem; }
+.to-wl-card { border-radius:10px; padding:20px 22px; }
+.to-wl-card.win  { background:rgba(29,158,117,0.07); border:0.5px solid rgba(29,158,117,0.25); }
+.to-wl-card.loss { background:rgba(216,90,48,0.07);  border:0.5px solid rgba(216,90,48,0.25); }
+.to-wl-label { font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:10px; }
+.to-wl-ppp   { font-family:'Bebas Neue',sans-serif; font-size:52px; line-height:1; margin-bottom:4px; }
+.to-wl-sub   { font-size:11px; color:rgba(255,255,255,0.35); margin-bottom:14px; }
+.to-wl-row   { display:flex; justify-content:space-between; font-family:'DM Mono',monospace; font-size:11px; padding:5px 0; border-bottom:0.5px solid rgba(240,234,248,0.07); }
+.to-wl-row:last-child { border:none; }
+.to-wl-key   { color:rgba(240,234,248,0.4); }
+.to-wl-val   { color:rgba(240,234,248,0.8); }
+
+/* ── Opp cards ── */
+.to-opp-stat-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:1.5rem; }
+.to-opp-card { background:rgba(255,255,255,0.02); border:0.5px solid rgba(240,234,248,0.08); border-radius:10px; padding:16px 18px; }
+.to-opp-label { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.to-opp-val   { font-family:'Bebas Neue',sans-serif; font-size:32px; line-height:1; margin-bottom:2px; }
+.to-opp-sub   { font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+
+    <div class="page-header">
+      <div class="page-eyebrow">Analytics · Play-by-Play</div>
+      <h1 class="page-title">Timeout Analysis</h1>
+      <p class="page-subtitle">240 post-timeout possessions · 35 games · 2025–26</p>
+    </div>
+
+    <div class="tab-row" style="margin-bottom:2rem;">
+      <a href="analytics-efficiency.html" class="tab-btn">Efficiency & Usage</a>
+      <a href="analytics-momentum.html"   class="tab-btn">Momentum Tracker</a>
+      <a href="analytics-defense.html"    class="tab-btn">Defensive Analytics</a>
+      <a href="analytics-advanced.html"   class="tab-btn">Advanced</a>
+      <a href="analytics-fouls.html"      class="tab-btn">Foul Analysis</a>
+      <a href="analytics-quarter.html"    class="tab-btn">Quarter Performance</a>
+      <a href="analytics-timeout.html"    class="tab-btn active">Timeout Analysis</a>
+    </div>
+
+    <!-- Sub-tabs -->
+    <div class="tab-row" id="to-subtabs" style="margin-bottom:1.5rem;">
+      <button class="tab-btn active" onclick="switchTO('overview',this)">Overview</button>
+      <button class="tab-btn" onclick="switchTO('lsu',this)">LSU Timeouts</button>
+      <button class="tab-btn" onclick="switchTO('opp',this)">Opponent Timeouts</button>
+      <button class="tab-btn" onclick="switchTO('official',this)">Official Timeouts</button>
+      <button class="tab-btn" onclick="switchTO('gamelog',this)">Game Log</button>
+    </div>
+
+    <!-- Overview -->
+    <div id="to-panel-overview">
+      <p class="section-intro">Points per possession (PPP) on the first offensive possession after each timeout type. College average is ~1.0 PPP. Below 0.65 is poor; above 0.85 is excellent.</p>
+      <div class="to-summary-bar" id="to-summary"></div>
+      <div class="to-section-grid" id="to-cards"></div>
+    </div>
+
+    <!-- LSU Timeouts -->
+    <div id="to-panel-lsu" style="display:none;">
+      <p class="section-intro">LSU called <strong style="color:#fff;">40 timeouts</strong> this season — 1.1 per game on average. The single biggest finding: LSU scored 0 points out of timeouts in all three losses.</p>
+
+      <div class="section-label" style="margin-bottom:0.75rem;">By Game Situation</div>
+      <div class="to-three-col" id="to-lsu-situation"></div>
+
+      <div class="section-label" style="margin:1.5rem 0 0.75rem;">Shot Selection Out of LSU Timeouts</div>
+      <p class="section-intro" style="margin-bottom:1rem;">What plays the coaching staff draws up — and how effective each look is.</p>
+      <div class="glass-card" style="overflow-x:auto;">
+        <table class="to-detail-table">
+          <thead><tr><th>Shot Type</th><th>Attempts</th><th>Made</th><th>FG%</th><th>Assessment</th></tr></thead>
+          <tbody id="to-shot-body"></tbody>
+        </table>
+      </div>
+
+      <div class="section-label" style="margin:1.5rem 0 0.75rem;">Wins vs. Losses</div>
+      <div class="to-wl-grid" id="to-wl-cards"></div>
+    </div>
+
+    <!-- Opponent Timeouts -->
+    <div id="to-panel-opp" style="display:none;">
+      <p class="section-intro">After the opponent calls timeout, does LSU's defense hold? The Q4 number is the most important — opponents score at 0.815 PPP after their own Q4 timeouts, a clear late-game vulnerability.</p>
+      <div class="to-three-col" id="to-opp-quarters"></div>
+      <div class="to-opp-stat-row" id="to-opp-summary"></div>
+    </div>
+
+    <!-- Official Timeouts -->
+    <div id="to-panel-official" style="display:none;">
+      <p class="section-intro">Official and TV timeouts affect both teams equally. This tracks LSU's offensive output on the first possession after the game resumes — a measure of focus during unscheduled breaks.</p>
+      <div class="to-three-col" id="to-off-quarters"></div>
+    </div>
+
+    <!-- Game Log -->
+    <div id="to-panel-gamelog" style="display:none;">
+      <p class="section-intro">LSU timeout effectiveness game by game, sorted by PPP. South Carolina (6 timeouts, 0.0 PPP) and all three losses at 0.0 PPP define this data set.</p>
+      <div class="glass-card" style="overflow-x:auto;">
+        <table class="to-detail-table">
+          <thead><tr><th>Opponent</th><th>Result</th><th>TOs Called</th><th>Pts After</th><th>PPP</th><th>Turnovers</th></tr></thead>
+          <tbody id="to-gamelog-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const TIMEOUT_DATA = {
+  LSU: {
+    label:'After LSU Timeout', color:'var(--gold)',
+    poss:40, pts:28, to:8, miss:21, makes:11,
+    ppp:0.700, to_rate:20.0,
+    by_q:{"1st":{poss:3,pts:4,ppp:1.333},"2nd":{poss:4,pts:5,ppp:1.250},"3rd":{poss:2,pts:0,ppp:0.000},"4th":{poss:31,pts:19,ppp:0.613}}
+  },
+  OPP: {
+    label:'After Opponent Timeout', color:'#D85A30',
+    poss:69, pts:50, to:20, miss:35, makes:14,
+    ppp:0.725, to_rate:29.0,
+    by_q:{"1st":{poss:12,pts:8,ppp:0.333},"2nd":{poss:14,pts:10,ppp:0.357},"3rd":{poss:16,pts:9,ppp:0.500},"4th":{poss:27,pts:23,ppp:0.815}}
+  },
+  OFF: {
+    label:'After Official / TV Timeout', color:'#9b59ff',
+    poss:131, pts:73, to:35, miss:67, makes:29,
+    ppp:0.557, to_rate:26.7,
+    by_q:{"1st":{poss:28,pts:11,ppp:0.393},"2nd":{poss:29,pts:17,ppp:0.586},"3rd":{poss:46,pts:28,ppp:0.609},"4th":{poss:28,pts:17,ppp:0.607}}
+  }
+};
+
+function pppColor(v) {
+  return v >= 0.85 ? '#1D9E75' : v >= 0.65 ? 'var(--gold)' : v > 0 ? '#D85A30' : 'rgba(255,255,255,0.2)';
+}
+
+function switchTO(panel, btn) {
+  ['overview','lsu','opp','official','gamelog'].forEach(p => {
+    document.getElementById('to-panel-'+p).style.display = 'none';
+  });
+  document.getElementById('to-panel-'+panel).style.display = '';
+  document.querySelectorAll('#to-subtabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+function buildOverview() {
+  document.getElementById('to-summary').innerHTML = `
+    <div class="to-sum-card">
+      <div class="to-sum-label">Total Possessions Tracked</div>
+      <div class="to-sum-val" style="color:var(--gold);">240</div>
+    </div>
+    <div class="to-sum-card">
+      <div class="to-sum-label">Best PPP — LSU Timeout</div>
+      <div class="to-sum-val" style="color:#1D9E75;">0.700</div>
+    </div>
+    <div class="to-sum-card">
+      <div class="to-sum-label">Opp Q4 PPP After Their TO</div>
+      <div class="to-sum-val" style="color:#D85A30;">0.815</div>
+    </div>
+  `;
+  document.getElementById('to-cards').innerHTML = Object.entries(TIMEOUT_DATA).map(([key, d]) => {
+    const pc = pppColor(d.ppp);
+    const tc = d.to_rate >= 28 ? '#D85A30' : d.to_rate >= 20 ? 'var(--gold)' : '#1D9E75';
+    const sp = Math.round(d.makes/d.poss*100), mp = Math.round(d.miss/d.poss*100), tp = Math.round(d.to/d.poss*100);
+    const qCells = Object.entries(d.by_q).map(([q,qd]) =>
+      `<div class="to-q-cell">
+        <div class="to-q-label">Q${q}</div>
+        <div class="to-q-ppp" style="color:${pppColor(qd.ppp)};">${qd.ppp.toFixed(2)}</div>
+        <div class="to-q-poss">${qd.poss} poss</div>
+      </div>`).join('');
+    return `<div class="to-card">
+      <div class="to-card-type">${d.label}</div>
+      <div class="to-ppp" style="color:${pc};">${d.ppp.toFixed(3)}</div>
+      <div class="to-ppp-label">pts per possession · ${d.poss} possessions</div>
+      <div class="to-stat-row"><span class="to-stat-label">PPP</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${Math.round(d.ppp*100)}%;background:${d.color};"></div></div>
+        <span class="to-stat-val">${d.ppp.toFixed(3)}</span></div>
+      <div class="to-stat-row"><span class="to-stat-label">TO Rate</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${Math.round(d.to_rate)}%;background:${tc};"></div></div>
+        <span class="to-stat-val" style="color:${tc};">${d.to_rate}%</span></div>
+      <div class="to-divider"></div>
+      <div class="to-card-type" style="margin-bottom:8px;">Possession outcomes</div>
+      <div class="to-stat-row"><span class="to-stat-label">Scored</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${sp}%;background:#1D9E75;"></div></div>
+        <span class="to-stat-val">${d.makes} (${sp}%)</span></div>
+      <div class="to-stat-row"><span class="to-stat-label">Missed</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${mp}%;background:rgba(255,255,255,0.2);"></div></div>
+        <span class="to-stat-val">${d.miss} (${mp}%)</span></div>
+      <div class="to-stat-row"><span class="to-stat-label">Turnover</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${tp}%;background:#D85A30;"></div></div>
+        <span class="to-stat-val">${d.to} (${tp}%)</span></div>
+      <div class="to-divider"></div>
+      <div class="to-card-type" style="margin-bottom:8px;">PPP by quarter</div>
+      <div class="to-q-grid">${qCells}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── LSU TIMEOUTS ─────────────────────────────────────────────────────────────
+function buildLSU() {
+  const sitData = [
+    {label:'When Leading',  poss:30, pts:19, to:3,  miss:11, scored:12, ppp:0.633, color:'#1D9E75'},
+    {label:'When Trailing', poss:10, pts:0,  to:0,  miss:5,  scored:0,  ppp:0.000, color:'#D85A30'},
+  ];
+  document.getElementById('to-lsu-situation').innerHTML = sitData.map(s => {
+    const mp = Math.round(s.miss/s.poss*100), sp2 = Math.round(s.scored/s.poss*100), tp = Math.round(s.to/s.poss*100);
+    return `<div class="to-card">
+      <div class="to-card-type">${s.label}</div>
+      <div class="to-ppp" style="color:${s.color};">${s.ppp.toFixed(3)}</div>
+      <div class="to-ppp-label">PPP · ${s.poss} possessions</div>
+      <div class="to-divider"></div>
+      <div class="to-stat-row"><span class="to-stat-label">Scored</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${sp2}%;background:#1D9E75;"></div></div>
+        <span class="to-stat-val">${s.scored} (${sp2}%)</span></div>
+      <div class="to-stat-row"><span class="to-stat-label">Missed</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${mp}%;background:rgba(255,255,255,0.2);"></div></div>
+        <span class="to-stat-val">${s.miss} (${mp}%)</span></div>
+      <div class="to-stat-row"><span class="to-stat-label">Turnover</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${tp}%;background:#D85A30;"></div></div>
+        <span class="to-stat-val">${s.to} (${tp}%)</span></div>
+    </div>`;
+  }).join('') + `<div class="to-card" style="border-color:rgba(253,208,35,0.15);background:rgba(253,208,35,0.03);">
+    <div class="to-card-type" style="color:var(--gold);">Key Finding</div>
+    <div style="font-size:13px;color:rgba(240,234,248,0.7);line-height:1.7;margin-top:8px;">LSU scores <strong style="color:#1D9E75;">0.633 PPP</strong> when leading out of timeouts but <strong style="color:#D85A30;">0.000 PPP</strong> when trailing. The team does not score on any possession immediately following a timeout when they are behind — a critical trend for fourth-quarter management.</div>
+  </div>`;
+
+  document.getElementById('to-shot-body').innerHTML = [
+    {type:'Free Throw',    att:7,  made:6, note:'Most efficient look — high-percentage possession'},
+    {type:'Pull-up Jumper',att:2,  made:1, note:'Small sample but 50% shows mid-range viability'},
+    {type:'Jumper',        att:8,  made:2, note:'25% FG — drawn-up jumpers underperforming'},
+    {type:'Layup',         att:8,  made:2, note:'25% FG — rim attempts well defended after TOs'},
+    {type:'Three-pointer', att:7,  made:1, note:'14.3% — threes out of timeouts not working'},
+    {type:'Turnover',      att:8,  made:0, note:'8 possessions lost before shot taken'},
+  ].map(s => {
+    const pct = Math.round(s.made/s.att*100);
+    const pc = pct >= 50 ? '#1D9E75' : pct >= 30 ? 'var(--gold)' : '#D85A30';
+    return `<tr>
+      <td style="font-weight:500;color:#fff;">${s.type}</td>
+      <td style="font-family:'DM Mono',monospace;">${s.att}</td>
+      <td style="font-family:'DM Mono',monospace;">${s.made}</td>
+      <td style="font-family:'DM Mono',monospace;color:${pc};font-weight:500;">${pct}%</td>
+      <td style="font-size:11px;color:rgba(240,234,248,0.4);">${s.note}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('to-wl-cards').innerHTML = `
+    <div class="to-wl-card win">
+      <div class="to-wl-label" style="color:#1D9E75;">In Wins (28W)</div>
+      <div class="to-wl-ppp" style="color:#1D9E75;">0.679</div>
+      <div class="to-wl-sub">28 possessions</div>
+      <div class="to-wl-row"><span class="to-wl-key">Scored</span><span class="to-wl-val">12 (43%)</span></div>
+      <div class="to-wl-row"><span class="to-wl-key">Missed</span><span class="to-wl-val">10 (36%)</span></div>
+      <div class="to-wl-row"><span class="to-wl-key">Turnovers</span><span class="to-wl-val">3 (11%)</span></div>
+      <div class="to-wl-row"><span class="to-wl-key">Total pts</span><span class="to-wl-val">19</span></div>
+    </div>
+    <div class="to-wl-card loss">
+      <div class="to-wl-label" style="color:#D85A30;">In Losses (3L)</div>
+      <div class="to-wl-ppp" style="color:#D85A30;">0.000</div>
+      <div class="to-wl-sub">12 possessions · 6 vs South Carolina alone</div>
+      <div class="to-wl-row"><span class="to-wl-key">Scored</span><span class="to-wl-val">0 (0%)</span></div>
+      <div class="to-wl-row"><span class="to-wl-key">Missed</span><span class="to-wl-val">6 (50%)</span></div>
+      <div class="to-wl-row"><span class="to-wl-key">Turnovers</span><span class="to-wl-val">0 (0%)</span></div>
+      <div class="to-wl-row"><span class="to-wl-key">Total pts</span><span class="to-wl-val">0</span></div>
+    </div>
+  `;
+}
+
+// ── OPPONENT TIMEOUTS ─────────────────────────────────────────────────────────
+function buildOpp() {
+  const oppQ = [
+    {q:'1st',poss:12,oppPts:4, held:10,opp_scored:2, ppp:0.333},
+    {q:'2nd',poss:14,oppPts:5, held:11,opp_scored:3, ppp:0.357},
+    {q:'3rd',poss:16,oppPts:8, held:13,opp_scored:3, ppp:0.500},
+    {q:'4th',poss:27,oppPts:22,held:15,opp_scored:12,ppp:0.815},
+  ];
+  document.getElementById('to-opp-quarters').innerHTML = oppQ.map(q => {
+    const hp = Math.round(q.held/q.poss*100), sp = Math.round(q.opp_scored/q.poss*100);
+    return `<div class="to-card">
+      <div class="to-card-type">Q${q.q}</div>
+      <div class="to-ppp" style="color:${pppColor(q.ppp)};">${q.ppp.toFixed(3)}</div>
+      <div class="to-ppp-label">opp PPP · ${q.poss} poss</div>
+      <div class="to-divider"></div>
+      <div class="to-stat-row"><span class="to-stat-label">LSU Held</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${hp}%;background:#1D9E75;"></div></div>
+        <span class="to-stat-val">${q.held} (${hp}%)</span></div>
+      <div class="to-stat-row"><span class="to-stat-label">Opp Scored</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${sp}%;background:#D85A30;"></div></div>
+        <span class="to-stat-val">${q.opp_scored} (${sp}%)</span></div>
+    </div>`;
+  }).join('');
+  document.getElementById('to-opp-summary').innerHTML = `
+    <div class="to-opp-card">
+      <div class="to-opp-label">Q4 — Biggest Vulnerability</div>
+      <div class="to-opp-val" style="color:#D85A30;">0.815</div>
+      <div class="to-opp-sub">Opponents score on 44% of possessions in Q4 after their own timeout. LSU holds at 0.333 PPP in Q1 but concedes 0.815 in Q4 — a stark defensive breakdown late in games that deserves attention in late-game preparation.</div>
+    </div>
+    <div class="to-opp-card">
+      <div class="to-opp-label">Overall — LSU Defense After Opp TO</div>
+      <div class="to-opp-val" style="color:var(--gold);">0.725</div>
+      <div class="to-opp-sub">Across all 69 possessions after opponent timeouts, LSU holds to 0.725 PPP — below the college average of 1.0. Early quarters are defended well. Q4 is where the defense breaks down after opponent adjustments.</div>
+    </div>
+  `;
+}
+
+// ── OFFICIAL TIMEOUTS ─────────────────────────────────────────────────────────
+function buildOfficial() {
+  const offQ = [
+    {q:'1st',poss:28,lsuPts:8, lsuScored:5, oppScored:2,tos:4,ppp:0.286},
+    {q:'2nd',poss:29,lsuPts:7, lsuScored:6, oppScored:4,tos:2,ppp:0.241},
+    {q:'3rd',poss:46,lsuPts:19,lsuScored:12,oppScored:7,tos:4,ppp:0.413},
+    {q:'4th',poss:28,lsuPts:11,lsuScored:6, oppScored:4,tos:3,ppp:0.393},
+  ];
+  document.getElementById('to-off-quarters').innerHTML = offQ.map(q => {
+    const lp = Math.round(q.lsuScored/q.poss*100), op = Math.round(q.oppScored/q.poss*100), tp = Math.round(q.tos/q.poss*100);
+    return `<div class="to-card">
+      <div class="to-card-type">Q${q.q}</div>
+      <div class="to-ppp" style="color:${pppColor(q.ppp)};">${q.ppp.toFixed(3)}</div>
+      <div class="to-ppp-label">LSU PPP · ${q.poss} poss</div>
+      <div class="to-divider"></div>
+      <div class="to-stat-row"><span class="to-stat-label">LSU Scored</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${lp}%;background:#1D9E75;"></div></div>
+        <span class="to-stat-val">${q.lsuScored} (${lp}%)</span></div>
+      <div class="to-stat-row"><span class="to-stat-label">Opp Scored</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${op}%;background:#D85A30;"></div></div>
+        <span class="to-stat-val">${q.oppScored} (${op}%)</span></div>
+      <div class="to-stat-row"><span class="to-stat-label">Turnover</span>
+        <div class="to-bar-track"><div class="to-bar-fill" style="width:${tp}%;background:rgba(255,255,255,0.2);"></div></div>
+        <span class="to-stat-val">${q.tos} (${tp}%)</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ── GAME LOG ─────────────────────────────────────────────────────────────────
+function buildGameLog() {
+  const data = [
+    {opp:'Alabama State',    res:'W',tos:1,pts:2,to:0},
+    {opp:'Mississippi State',res:'W',tos:1,pts:2,to:0},
+    {opp:'Texas Tech',       res:'W',tos:1,pts:2,to:0},
+    {opp:'Jacksonville',     res:'W',tos:2,pts:3,to:0},
+    {opp:'Georgia Southern', res:'W',tos:1,pts:1,to:0},
+    {opp:'Georgia',          res:'W',tos:2,pts:2,to:0},
+    {opp:'Oklahoma (SEC T)', res:'W',tos:2,pts:2,to:0},
+    {opp:'Florida',          res:'W',tos:3,pts:3,to:0},
+    {opp:'Tennessee',        res:'W',tos:2,pts:1,to:0},
+    {opp:'Ole Miss',         res:'W',tos:3,pts:1,to:0},
+    {opp:'Houston Christian',res:'W',tos:1,pts:0,to:0},
+    {opp:'SE Louisiana',     res:'W',tos:1,pts:0,to:0},
+    {opp:'Charlotte',        res:'W',tos:1,pts:0,to:0},
+    {opp:'Tulane',           res:'W',tos:1,pts:0,to:1},
+    {opp:'Texas',            res:'W',tos:3,pts:0,to:1},
+    {opp:'Alabama',          res:'W',tos:2,pts:0,to:0},
+    {opp:'Duke (NCAA)',      res:'L',tos:3,pts:0,to:1},
+    {opp:'Kentucky',         res:'L',tos:1,pts:0,to:0},
+    {opp:'Vanderbilt',       res:'L',tos:3,pts:0,to:0},
+    {opp:'South Carolina',   res:'L',tos:6,pts:0,to:0},
+  ].sort((a,b) => (b.pts/b.tos) - (a.pts/a.tos));
+
+  document.getElementById('to-gamelog-body').innerHTML = data.map(g => {
+    const ppp = (g.pts/g.tos).toFixed(3);
+    const rc = g.res === 'W' ? '#1D9E75' : '#D85A30';
+    const pc = pppColor(parseFloat(ppp));
+    return `<tr style="${g.res==='L'?'background:rgba(216,90,48,0.05);':''}">
+      <td style="font-weight:500;color:#fff;">${g.opp}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:${rc};font-weight:500;">${g.res}</span></td>
+      <td style="font-family:'DM Mono',monospace;">${g.tos}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--gold);">${g.pts}</td>
+      <td style="font-family:'DM Mono',monospace;color:${pc};font-weight:500;">${ppp}</td>
+      <td style="font-family:'DM Mono',monospace;color:${g.to>0?'#D85A30':'rgba(240,234,248,0.4)'};">${g.to}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+buildOverview();
+buildLSU();
+buildOpp();
+buildOfficial();
+buildGameLog();
+
+function toggleNav() {
+  document.getElementById('topnav-links').classList.toggle('open');
+  document.getElementById('nav-hamburger').classList.toggle('open');
+}
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

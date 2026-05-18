@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Advanced Analytics · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.section-intro { font-size:13px; color:rgba(240,234,248,0.42); line-height:1.7; margin-bottom:1.25rem; font-weight:300; max-width:660px; }
+.section-block { margin-bottom:3rem; }
+.adv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-bottom:1.5rem; }
+.adv-card { background:rgba(255,255,255,0.02); border:0.5px solid rgba(240,234,248,0.08); border-radius:10px; padding:14px 16px; }
+.adv-name { font-size:13px; font-weight:500; color:#fff; margin-bottom:2px; }
+.adv-pos  { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px; }
+.adv-val  { font-family:'Bebas Neue',sans-serif; font-size:28px; color:var(--gold); line-height:1; }
+.adv-sub  { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); margin-top:4px; }
+.adv-bar-track { height:3px; background:rgba(240,234,248,0.07); border-radius:10px; overflow:hidden; margin-top:8px; }
+.adv-bar-fill  { height:100%; border-radius:10px; }
+
+.wl-table { width:100%; border-collapse:collapse; }
+.wl-table th { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.08em; padding:8px 12px; text-align:left; border-bottom:0.5px solid rgba(240,234,248,0.08); }
+.wl-table td { padding:10px 12px; border-bottom:0.5px solid rgba(240,234,248,0.07); font-size:13px; color:rgba(240,234,248,0.75); }
+.wl-table tr:last-child td { border:none; }
+.wl-name { font-weight:500; color:#fff; }
+.wl-win  { color:#1D9E75 !important; font-weight:500; }
+.wl-loss { color:#D85A30 !important; font-weight:500; }
+.wl-diff-pos { color:#1D9E75 !important; font-family:'DM Mono',monospace; font-size:11px; }
+.wl-diff-neg { color:#D85A30 !important; font-family:'DM Mono',monospace; font-size:11px; }
+.wl-diff-neu { color:rgba(240,234,248,0.3) !important; font-family:'DM Mono',monospace; font-size:11px; }
+
+
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="page-header">
+      <div class="page-eyebrow">Analytics · Advanced</div>
+      <h1 class="page-title">Advanced Analytics</h1>
+      <p class="page-subtitle">TS% = PTS ÷ (2×(FGA + 0.44×FTA)) · eFG% = (FGM + 0.5×3PM) ÷ FGA · Win/Loss splits · 2025–26</p>
+    </div>
+
+        <div class="tab-row" style="margin-bottom:2rem;">
+      
+      <a href="analytics-efficiency.html" class="tab-btn">Efficiency & Usage</a>
+      <a href="analytics-momentum.html"   class="tab-btn">Momentum Tracker</a>
+      <a href="analytics-defense.html"    class="tab-btn">Defensive Analytics</a>
+      <a href="analytics-advanced.html"   class="tab-btn">Advanced</a>
+      <a href="analytics-fouls.html"      class="tab-btn">Foul Analysis</a>
+      <a href="analytics-quarter.html"    class="tab-btn">Quarter Performance</a>
+      <a href="analytics-timeout.html"    class="tab-btn">Timeout Analysis</a>
+    </div>
+
+    <!-- TRUE SHOOTING % -->
+    <div class="section-block">
+      <div class="section-label">True Shooting % (TS%)</div>
+      <p class="section-intro">TS% = PTS ÷ (2 × (FGA + 0.44 × FTA)). Measures scoring efficiency across all shot types — field goals, threes, and free throws. Unlike FG%, it accounts for the extra value of three-pointers and the cost of getting to the line.</p>
+      <div class="adv-grid" id="ts-grid"></div>
+    </div>
+
+    <!-- eFG% -->
+    <div class="section-block">
+      <div class="section-label">Effective Field Goal % (eFG%)</div>
+      <p class="section-intro">eFG% = (FGM + 0.5 × 3PM) ÷ FGA. Adjusts field goal percentage to account for the fact that three-pointers are worth 50% more than two-pointers. A player shooting 40% from three is equivalent to shooting 60% from two.</p>
+      <div class="adv-grid" id="efg-grid"></div>
+    </div>
+
+    <!-- WIN / LOSS SPLITS -->
+    <div class="section-block">
+      <div class="section-label">Win / Loss performance splits</div>
+      <p class="section-intro">Each player's average stats in wins compared to losses. Shows who elevates in games that matter and who struggles under pressure. Δ column shows the difference (Win − Loss).</p>
+      <div class="glass-card" style="overflow-x:auto;">
+        <table class="wl-table" id="wl-table">
+          <thead><tr>
+            <th>Player</th>
+            <th>W-PPG</th><th>L-PPG</th><th>Δ PPG</th>
+            <th>W-RPG</th><th>L-RPG</th><th>Δ RPG</th>
+            <th>W-APG</th><th>L-APG</th><th>Δ APG</th>
+            <th>W-TOV</th><th>L-TOV</th><th>Δ TOV</th>
+            <th>W</th><th>L</th>
+          </tr></thead>
+          <tbody id="wl-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/players.js"></script>
+<script src="js/gamelog.js"></script>
+<script>
+// Only players with meaningful minutes
+const ADV_PLAYERS = PLAYERS.filter(p => p.gp >= 18 && p.mpg >= 6);
+
+// ── True Shooting % ──────────────────────────────────────────────────────────
+// TS% = PTS / (2*(FGA + 0.44*FTA)) — see buildTS() below
+function buildTS() {
+  const players = [...ADV_PLAYERS].map(p => {
+    const ts = +(p.totPts / (2 * (p.fga + 0.44 * p.fta)) * 100).toFixed(1);
+    return { ...p, ts };
+  }).sort((a,b) => b.ts - a.ts);
+  const max = players[0].ts;
+  document.getElementById('ts-grid').innerHTML = players.map(p => `
+    <div class="adv-card">
+      <div class="adv-name">${p.name.split(' ')[0]} ${p.name.split(' ').slice(-1)[0]}</div>
+      <div class="adv-pos">#${p.num} · ${p.pos}</div>
+      <div class="adv-val">${p.ts}%</div>
+      <div class="adv-sub">TS% — ${p.fgpct}% FG · ${p.ftpct}% FT</div>
+      <div class="adv-bar-track"><div class="adv-bar-fill" style="width:${Math.round(p.ts/max*100)}%;background:linear-gradient(90deg,var(--purple),var(--gold));"></div></div>
+    </div>`).join('');
+}
+
+// ── eFG% ─────────────────────────────────────────────────────────────────────
+function buildEFG() {
+  const players = [...ADV_PLAYERS].map(p => {
+    const efg = +(((p.fgm + 0.5 * p.tpm) / p.fga) * 100).toFixed(1);
+    return { ...p, efg };
+  }).sort((a,b) => b.efg - a.efg);
+  const max = players[0].efg;
+  document.getElementById('efg-grid').innerHTML = players.map(p => `
+    <div class="adv-card">
+      <div class="adv-name">${p.name.split(' ')[0]} ${p.name.split(' ').slice(-1)[0]}</div>
+      <div class="adv-pos">#${p.num} · ${p.pos}</div>
+      <div class="adv-val">${p.efg}%</div>
+      <div class="adv-sub">eFG% · raw FG%: ${p.fgpct}%</div>
+      <div class="adv-bar-track"><div class="adv-bar-fill" style="width:${Math.round(p.efg/max*100)}%;background:linear-gradient(90deg,#1a0050,#9b59ff);"></div></div>
+    </div>`).join('');
+}
+
+// ── Win / Loss splits ────────────────────────────────────────────────────────
+function buildWL() {
+  function avgStat(games, stat) {
+    if (!games.length) return 0;
+    return +(games.reduce((s,g) => s + (g[stat]||0), 0) / games.length).toFixed(1);
+  }
+  function diff(w, l) {
+    const d = +(w - l).toFixed(1);
+    const cls = d > 0.4 ? 'wl-diff-pos' : d < -0.4 ? 'wl-diff-neg' : 'wl-diff-neu';
+    return `<span class="${cls}">${d >= 0 ? '+' : ''}${d}</span>`;
+  }
+  let totals = { wp:0, lp:0, wr:0, lr:0, wa:0, la:0, wt:0, lt:0 };
+  const rows = ADV_PLAYERS.map(p => {
+    const playerGames = GAME_LOG.filter(g => g.playerNum === p.num);
+    const wins   = playerGames.filter(g => g.result === 'W');
+    const losses = playerGames.filter(g => g.result === 'L');
+    const wp = avgStat(wins,'pts'), lp = avgStat(losses,'pts');
+    const wr = avgStat(wins,'reb'), lr = avgStat(losses,'reb');
+    const wa = avgStat(wins,'ast'), la = avgStat(losses,'ast');
+    const wt = avgStat(wins,'tov'), lt = avgStat(losses,'tov');
+    totals.wp = +(totals.wp + wp).toFixed(1);
+    totals.lp = +(totals.lp + lp).toFixed(1);
+    totals.wr = +(totals.wr + wr).toFixed(1);
+    totals.lr = +(totals.lr + lr).toFixed(1);
+    totals.wa = +(totals.wa + wa).toFixed(1);
+    totals.la = +(totals.la + la).toFixed(1);
+    totals.wt = +(totals.wt + wt).toFixed(1);
+    totals.lt = +(totals.lt + lt).toFixed(1);
+    return `<tr>
+      <td class="wl-name">${p.name}</td>
+      <td class="wl-win">${wp}</td><td class="wl-loss">${lp}</td><td>${diff(wp,lp)}</td>
+      <td class="wl-win">${wr}</td><td class="wl-loss">${lr}</td><td>${diff(wr,lr)}</td>
+      <td class="wl-win">${wa}</td><td class="wl-loss">${la}</td><td>${diff(wa,la)}</td>
+      <td class="wl-win">${wt}</td><td class="wl-loss">${lt}</td><td>${diff(wt,lt)}</td>
+      <td style="color:rgba(240,234,248,0.4);font-size:11px;">${wins.length}</td>
+      <td style="color:rgba(240,234,248,0.4);font-size:11px;">${losses.length}</td>
+    </tr>`;
+  }).join('');
+  const totalsRow = `<tr style="border-top:1px solid rgba(253,208,35,0.3);margin-top:4px;">
+    <td class="wl-name" style="color:var(--gold);font-weight:600;">Totals</td>
+    <td class="wl-win" style="font-weight:600;">${totals.wp}</td><td class="wl-loss" style="font-weight:600;">${totals.lp}</td><td>${diff(totals.wp,totals.lp)}</td>
+    <td class="wl-win" style="font-weight:600;">${totals.wr}</td><td class="wl-loss" style="font-weight:600;">${totals.lr}</td><td>${diff(totals.wr,totals.lr)}</td>
+    <td class="wl-win" style="font-weight:600;">${totals.wa}</td><td class="wl-loss" style="font-weight:600;">${totals.la}</td><td>${diff(totals.wa,totals.la)}</td>
+    <td class="wl-win" style="font-weight:600;">${totals.wt}</td><td class="wl-loss" style="font-weight:600;">${totals.lt}</td><td>${diff(totals.wt,totals.lt)}</td>
+    <td colspan="2"></td>
+  </tr>`;
+  document.getElementById('wl-body').innerHTML = rows + totalsRow;
+}
+
+// Init
+buildTS();
+buildEFG();
+buildWL();
+</script>
+<script>
+function toggleNav() {
+  const links = document.getElementById('topnav-links');
+  const btn   = document.getElementById('nav-hamburger');
+  links.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

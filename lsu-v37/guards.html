@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Guard Breakdown · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.pos-tabs { display:flex; gap:8px; margin-bottom:2rem; }
+.pos-tab { padding:8px 20px; border-radius:20px; border:0.5px solid rgba(240,234,248,0.1); background:transparent; color:rgba(240,234,248,0.4); font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; transition:all 0.15s; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.pos-tab:hover { color:#fff; border-color:rgba(240,234,248,0.3); }
+.pos-tab.active {  border-color:var(--purple); color:var(--gold); font-weight:500; }
+
+.player-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-bottom:2rem; }
+.player-select-card { padding:14px 16px; border-radius:10px; background:rgba(255,255,255,0.02); border:0.5px solid rgba(240,234,248,0.08); cursor:pointer; transition:all 0.15s; }
+.player-select-card:hover { border-color:rgba(255,255,255,0.2); }
+.player-select-card.active { background:rgba(59,31,106,0.25); border-color:var(--purple); }
+.psc-num  { font-family:'Bebas Neue',sans-serif; font-size:22px; color:rgba(253,208,35,0.4); line-height:1; }
+.psc-name { font-size:13px; font-weight:500; color:#fff; margin-top:2px; }
+.psc-pos  { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-transform:uppercase; margin-top:3px; }
+.dual-badge { font-size:9px; background:rgba(29,158,117,0.2); color:#1D9E75; padding:2px 6px; border-radius:10px; font-family:'DM Mono',monospace; margin-top:4px; display:inline-block; }
+
+.three-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:1.5rem; }
+@media(max-width:560px){ .three-strip { grid-template-columns:repeat(2,1fr); } }
+.ts-card { background:rgba(255,255,255,0.03); border:0.5px solid rgba(240,234,248,0.07); border-radius:10px; padding:14px; text-align:center; }
+.ts-val   { font-family:'Bebas Neue',sans-serif; font-size:28px; color:var(--gold); line-height:1; }
+.ts-label { font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px; }
+.ts-sub   { font-size:11px; color:rgba(255,255,255,0.25); margin-top:2px; }
+
+.comparison-table { width:100%; border-collapse:collapse; }
+.comparison-table th { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.08em; padding:8px 12px; text-align:left; border-bottom:0.5px solid rgba(240,234,248,0.08); }
+.comparison-table td { padding:10px 12px; border-bottom:0.5px solid rgba(240,234,248,0.07); font-size:13px; color:rgba(240,234,248,0.75); }
+.comparison-table tr:last-child td { border:none; }
+.comparison-table tr:hover td { background:rgba(255,255,255,0.02); }
+.ct-name { font-weight:500; color:#fff; }
+.ct-best { color:var(--gold); font-family:'DM Mono',monospace; font-weight:500; }
+.bar-inline { display:inline-flex; align-items:center; gap:8px; width:100%; }
+.bar-inline-track { flex:1; height:4px; background:rgba(240,234,248,0.07); border-radius:10px; overflow:hidden; }
+.bar-inline-fill  { height:100%; border-radius:10px; }
+
+.stat-section { margin-bottom:2rem; }
+.section-intro { font-size:13px; color:rgba(240,234,248,0.42); line-height:1.7; margin-bottom:1.25rem; font-weight:300; max-width:660px; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html" class="active">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="page-header">
+      <div class="page-eyebrow">Position Breakdown</div>
+      <h1 class="page-title">Guard Players</h1>
+      <p class="page-subtitle">Three-point analysis · Assist/turnover · Perimeter scoring · Steal pressure · 2025–26 season</p>
+    </div>
+
+    <div class="pos-tabs">
+      <a class="pos-tab" href="posts.html">Post Players</a>
+      <span class="pos-tab active">Guard Players</span>
+    </div>
+
+    <div class="section-label" style="margin-bottom:10px;">Select player</div>
+    <p class="section-intro">ZaKiyah Johnson and Mikaylah Williams appear here due to their guard responsibilities and perimeter play throughout the season.</p>
+    <div class="player-grid" id="player-grid"></div>
+
+    <!-- Three point analysis -->
+    <div class="stat-section">
+      <div class="section-label">Three-point analysis — selected player</div>
+      <div class="three-strip" id="three-strip"></div>
+    </div>
+
+    <!-- Full three point comparison -->
+    <div class="stat-section">
+      <div class="section-label">Three-point shooting — all guards</div>
+      <div class="glass-card" style="margin-bottom:1.5rem;">
+        <div style="position:relative;width:100%;height:240px;">
+          <canvas id="threeChart" role="img" aria-label="Three point shooting comparison">Three point chart.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steal & pressure defense -->
+    <div class="stat-section">
+      <div class="section-label">Steal & pressure defense</div>
+      <div class="glass-card" style="margin-bottom:1.5rem;">
+        <div style="position:relative;width:100%;height:220px;">
+          <canvas id="stealChart" role="img" aria-label="Steals per game comparison">Steals chart.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assist to turnover -->
+    <div class="stat-section">
+      <div class="section-label">Assist-to-turnover ratio</div>
+      <p class="section-intro">Higher ratio = better ball protection relative to playmaking. League average is typically around 1.5:1.</p>
+      <div class="glass-card">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>APG</th>
+              <th>TPG</th>
+              <th>A/TO ratio</th>
+              <th>Total AST</th>
+              <th>Total TOV</th>
+            </tr>
+          </thead>
+          <tbody id="ato-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Perimeter scoring -->
+    <div class="stat-section">
+      <div class="section-label">Perimeter scoring efficiency</div>
+      <div class="glass-card">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>PPG</th>
+              <th>FG%</th>
+              <th>3PT%</th>
+              <th>FT%</th>
+              <th>3PM</th>
+            </tr>
+          </thead>
+          <tbody id="perimeter-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/players.js"></script>
+<script>
+// Guard players — includes dual-position players
+const GUARD_NUMS = [4, 23, 30, 3, 6, 11, 12]; // Flau'jae, Fulwiley, Richard, Hines, Bourrage, ZaKiyah, Williams
+let currentGuard = 0;
+let threeChart = null, stealChart = null;
+
+function getGuardPlayers() {
+  return GUARD_NUMS.map(n => PLAYERS.find(p => p.num === n)).filter(Boolean);
+}
+
+function isDual(p) { return p.num === 11 || p.num === 12; }
+
+function renderPlayerGrid() {
+  const guards = getGuardPlayers();
+  document.getElementById("player-grid").innerHTML = guards.map((p, i) => `
+    <div class="player-select-card${i === currentGuard ? ' active' : ''}" onclick="selectGuard(${i})">
+      <div class="psc-num">#${p.num}</div>
+      <div class="psc-name">${p.name}</div>
+      <div class="psc-pos">${p.pos} · ${p.year}</div>
+      ${isDual(p) ? '<div class="dual-badge">Dual position</div>' : ''}
+    </div>`).join("");
+}
+
+function renderThreeStrip(p) {
+  const vol = p.tpa > 0 ? (p.tpa / p.gp).toFixed(1) : "0.0";
+  document.getElementById("three-strip").innerHTML = `
+    <div class="ts-card"><div class="ts-val">${p.tpm}</div><div class="ts-label">3PM made</div><div class="ts-sub">Season total</div></div>
+    <div class="ts-card"><div class="ts-val">${p.tpa}</div><div class="ts-label">3PA attempts</div><div class="ts-sub">Season total</div></div>
+    <div class="ts-card"><div class="ts-val">${p.tppct}%</div><div class="ts-label">3PT%</div><div class="ts-sub">Shooting pct</div></div>
+    <div class="ts-card"><div class="ts-val">${vol}</div><div class="ts-label">3PA/game</div><div class="ts-sub">Attempt volume</div></div>
+  `;
+}
+
+function renderThreeChart() {
+  const guards = getGuardPlayers().filter(p => p.tpa > 0);
+  if (threeChart) threeChart.destroy();
+  const ctx = document.getElementById("threeChart").getContext("2d");
+  threeChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: guards.map(p => p.name.split(' ')[0] + " " + p.name.split(' ').slice(-1)[0]),
+      datasets: [
+        { label: "3PT%", data: guards.map(p => p.tppct), backgroundColor: "rgba(253,208,35,0.75)", borderRadius: 4, yAxisID: "y" },
+        { label: "3PM", data: guards.map(p => p.tpm), backgroundColor: "rgba(59,31,106,0.6)", borderRadius: 4, yAxisID: "y2" }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: "rgba(240,234,248,0.5)", font: { family: "DM Mono", size: 10 } } } },
+      scales: {
+        x: { ticks: { color: "rgba(240,234,248,0.4)", font: { family: "DM Mono", size: 10 } }, grid: { color: "rgba(255,255,255,0.04)" } },
+        y:  { position: "left",  title: { display:true, text:"3PT%", color:"rgba(240,234,248,0.3)", font:{size:10,family:"DM Mono"} }, ticks: { color: "rgba(240,234,248,0.4)", font: { family:"DM Mono", size:10 } }, grid: { color:"rgba(255,255,255,0.04)" } },
+        y2: { position: "right", title: { display:true, text:"3PM made", color:"rgba(240,234,248,0.3)", font:{size:10,family:"DM Mono"} }, ticks: { color: "rgba(240,234,248,0.4)", font: { family:"DM Mono", size:10 } }, grid: { display:false } }
+      }
+    }
+  });
+}
+
+function renderStealChart() {
+  const guards = getGuardPlayers().sort((a,b) => b.spg - a.spg);
+  if (stealChart) stealChart.destroy();
+  const ctx = document.getElementById("stealChart").getContext("2d");
+  stealChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: guards.map(p => p.name.split(' ')[0] + " " + p.name.split(' ').slice(-1)[0]),
+      datasets: [{
+        label: "SPG",
+        data: guards.map(p => p.spg),
+        backgroundColor: guards.map(p => p.spg >= 2 ? "rgba(253,208,35,0.85)" : "rgba(59,31,106,0.6)"),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color:"rgba(240,234,248,0.4)", font:{family:"DM Mono",size:10} }, grid:{color:"rgba(255,255,255,0.04)"} },
+        y: { ticks: { color:"rgba(240,234,248,0.6)", font:{family:"DM Mono",size:11} }, grid:{display:false} }
+      }
+    }
+  });
+}
+
+function renderATOTable() {
+  const guards = getGuardPlayers().sort((a,b) => (b.apg/b.tpg) - (a.apg/a.tpg));
+  document.getElementById("ato-body").innerHTML = guards.map(p => {
+    const ratio = (p.apg / p.tpg).toFixed(2);
+    const isTop = parseFloat(ratio) === Math.max(...guards.map(g => g.apg/g.tpg));
+    return `<tr>
+      <td class="ct-name">${p.name}${isDual(p) ? ' <span class="dual-badge">dual</span>' : ''}</td>
+      <td style="font-family:'DM Mono',monospace">${p.apg}</td>
+      <td style="font-family:'DM Mono',monospace">${p.tpg}</td>
+      <td class="${isTop ? 'ct-best' : ''}" style="font-family:'DM Mono',monospace;font-weight:500;">${ratio}</td>
+      <td style="font-family:'DM Mono',monospace;color:rgba(240,234,248,0.4)">${p.totAst}</td>
+      <td style="font-family:'DM Mono',monospace;color:rgba(240,234,248,0.4)">${Math.round(p.tpg * p.gp)}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderPerimeterTable() {
+  const guards = getGuardPlayers().sort((a,b) => b.ppg - a.ppg);
+  document.getElementById("perimeter-body").innerHTML = guards.map(p => {
+    const maxPPG = Math.max(...guards.map(g => g.ppg));
+    const pct = Math.round((p.ppg/maxPPG)*100);
+    return `<tr>
+      <td class="ct-name">${p.name}${isDual(p) ? ' <span class="dual-badge">dual</span>' : ''}</td>
+      <td>
+        <div class="bar-inline">
+          <div class="bar-inline-track"><div class="bar-inline-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--purple),var(--gold));"></div></div>
+          <span style="font-family:'DM Mono',monospace;font-size:12px;min-width:28px">${p.ppg}</span>
+        </div>
+      </td>
+      <td style="font-family:'DM Mono',monospace">${p.fgpct}%</td>
+      <td style="font-family:'DM Mono',monospace">${p.tppct}%</td>
+      <td style="font-family:'DM Mono',monospace">${p.ftpct}%</td>
+      <td style="font-family:'DM Mono',monospace;color:rgba(240,234,248,0.5)">${p.tpm}</td>
+    </tr>`;
+  }).join("");
+}
+
+function selectGuard(i) {
+  currentGuard = i;
+  renderPlayerGrid();
+  renderThreeStrip(getGuardPlayers()[i]);
+}
+
+// Init
+renderPlayerGrid();
+renderThreeStrip(getGuardPlayers()[0]);
+renderThreeChart();
+renderStealChart();
+renderATOTable();
+renderPerimeterTable();
+</script>
+<script>
+function toggleNav() {
+  const links = document.getElementById('topnav-links');
+  const btn   = document.getElementById('nav-hamburger');
+  links.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+// Close nav when a link is clicked (mobile)
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

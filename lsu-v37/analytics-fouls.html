@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Foul Analysis · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+/* ── Foul rows ── */
+.foul-row {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 0;
+  border-bottom:0.5px solid rgba(255,255,255,0.04);
+}
+.foul-row:last-child { border:none; }
+.foul-name { font-size:13px; font-weight:500; color:#fff; flex:1; min-width:120px; }
+.foul-pos  { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); min-width:32px; }
+.foul-track{ flex:1; height:4px; background:rgba(240,234,248,0.07); border-radius:10px; overflow:hidden; }
+.foul-fill { height:100%; border-radius:10px; transition:width 0.6s ease; }
+.foul-val  { font-family:'DM Mono',monospace; font-size:13px; color:var(--gold); min-width:36px; text-align:right; }
+.foul-note { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); min-width:90px; text-align:right; }
+
+/* ── Foul risk card ── */
+.risk-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(175px,1fr));
+  gap:12px;
+  margin-bottom:1.5rem;
+}
+.risk-card {
+  background:rgba(255,255,255,0.02);
+  border:0.5px solid rgba(240,234,248,0.08);
+  border-radius:10px;
+  padding:16px 18px;
+  transition:border-color 0.2s;
+}
+.risk-card:hover { border-color:rgba(255,255,255,0.2); }
+.risk-card.hi  { border-color:rgba(216,90,48,0.35);  background:rgba(216,90,48,0.06); }
+.risk-card.med { border-color:rgba(253,208,35,0.25); background:rgba(253,208,35,0.04); }
+.risk-card.low { border-color:rgba(29,158,117,0.25); background:rgba(29,158,117,0.04); }
+.risk-name { font-size:13px; font-weight:500; color:#fff; margin-bottom:2px; }
+.risk-pos  { font-family:'DM Mono',monospace; font-size:9px; color:rgba(255,255,255,0.28); text-transform:uppercase; margin-bottom:10px; }
+.risk-val  { font-family:'Bebas Neue',sans-serif; font-size:34px; line-height:1; }
+.risk-val.hi  { color:#D85A30; }
+.risk-val.med { color:var(--gold); }
+.risk-val.low { color:#1D9E75; }
+.risk-label { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.06em; margin-top:4px; }
+.risk-badge {
+  display:inline-flex; align-items:center;
+  margin-top:6px; padding:2px 8px;
+  border-radius:10px; font-family:'DM Mono',monospace;
+  font-size:9px; text-transform:uppercase; letter-spacing:0.05em;
+}
+.risk-badge.hi  { background:rgba(216,90,48,0.2);  color:#D85A30; }
+.risk-badge.med { background:rgba(253,208,35,0.12); color:var(--gold); }
+.risk-badge.low { background:rgba(29,158,117,0.15); color:#1D9E75; }
+
+/* ── Fouls drawn ── */
+.drawn-row {
+  display:grid;
+  grid-template-columns:1fr auto auto auto;
+  align-items:center; gap:12px;
+  padding:10px 0;
+  border-bottom:0.5px solid rgba(255,255,255,0.04);
+}
+.drawn-row:last-child { border:none; }
+.drawn-name { font-size:13px; font-weight:500; color:#fff; }
+.drawn-pos  { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); display:block; margin-top:1px; }
+.drawn-val  { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--gold); line-height:1; text-align:right; }
+.drawn-sub  { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-align:right; }
+.drawn-bar  { width:80px; }
+.drawn-track{ height:3px; background:rgba(240,234,248,0.07); border-radius:10px; overflow:hidden; }
+.drawn-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--purple),var(--gold)); }
+
+.analysis-card {
+  background:rgba(255,255,255,0.02);
+  border:0.5px solid rgba(240,234,248,0.08);
+  border-radius:10px;
+  padding:20px 22px;
+}
+.analysis-card-title {
+  font-family:'DM Mono',monospace; font-size:10px;
+  color:rgba(255,255,255,0.32); text-transform:uppercase;
+  letter-spacing:0.1em; margin-bottom:14px;
+}
+.section-intro { font-size:13px; color:rgba(240,234,248,0.42); line-height:1.7; margin-bottom:1.25rem; font-weight:300; max-width:660px; }
+.section-block { margin-bottom:2.5rem; }
+
+/* ── Turnover Breakdown ── */
+.tov-table { width:100%; border-collapse:collapse; }
+.tov-table th {
+  font-family:'DM Mono',monospace; font-size:10px;
+  color:rgba(240,234,248,0.3); text-transform:uppercase;
+  letter-spacing:0.08em; padding:8px 12px;
+  text-align:left; border-bottom:0.5px solid rgba(240,234,248,0.08);
+  white-space:nowrap;
+}
+.tov-table td {
+  padding:10px 12px; border-bottom:0.5px solid rgba(240,234,248,0.07);
+  font-size:12px; color:rgba(240,234,248,0.7);
+}
+.tov-table tr:last-child td { border:none; }
+.tov-table tr:hover td { background:rgba(255,255,255,0.02); }
+.pct-bar { display:flex; align-items:center; gap:6px; }
+.pct-track { flex:1; max-width:60px; height:3px; background:rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
+.pct-fill  { height:100%; border-radius:10px; }
+
+.def-box {
+  background:rgba(255,255,255,0.02);
+  border:0.5px solid rgba(240,234,248,0.08);
+  border-radius:10px; padding:16px 18px; margin-bottom:1rem;
+}
+.def-box-title {
+  font-family:'DM Mono',monospace; font-size:10px;
+  color:rgba(253,208,35,0.7); text-transform:uppercase;
+  letter-spacing:0.1em; margin-bottom:8px;
+}
+.def-box-text { font-size:13px; color:rgba(240,234,248,0.6); line-height:1.7; font-weight:300; }
+.def-box-text strong { color:rgba(255,255,255,0.9); font-weight:500; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="page-header">
+      <div class="page-eyebrow">Analytics · Defensive</div>
+      <h1 class="page-title">Foul Analysis</h1>
+      <p class="page-subtitle">Personal fouls · Foul rate / 40 · Fouls drawn · 2025–26</p>
+    </div>
+
+    <!-- Sub-nav -->
+        <div class="tab-row" style="margin-bottom:2rem;">
+      
+      <a href="analytics-efficiency.html" class="tab-btn">Efficiency & Usage</a>
+      <a href="analytics-momentum.html"   class="tab-btn">Momentum Tracker</a>
+      <a href="analytics-defense.html"    class="tab-btn">Defensive Analytics</a>
+      <a href="analytics-advanced.html"   class="tab-btn">Advanced</a>
+      <a href="analytics-fouls.html"      class="tab-btn">Foul Analysis</a>
+      <a href="analytics-quarter.html"    class="tab-btn">Quarter Performance</a>
+      <a href="analytics-timeout.html"    class="tab-btn">Timeout Analysis</a>
+    </div>
+
+    <!-- Foul Risk Cards -->
+    <div class="section-block">
+      <div class="section-label">Foul risk overview — personal fouls per game</div>
+      <p class="section-intro">Players above 2.5 PF/G are foul-trouble risks — they either sit in the first half or get forced into passive defense. Color-coded: red = high risk (2.5+), yellow = moderate (1.8–2.4), green = low risk.</p>
+      <div class="risk-grid" id="risk-grid"></div>
+    </div>
+
+    <!-- Foul Rate / 40 -->
+    <div class="section-block">
+      <div class="section-label">Foul rate per 40 minutes</div>
+      <p class="section-intro">Personal fouls normalized to 40 minutes — exposes players who accumulate fouls faster than their raw PF/G suggests. Higher = more foul-trouble risk per minute on the court.</p>
+      <div class="analysis-card">
+        <div class="analysis-card-title">Fouls / 40 min — highest to lowest</div>
+        <div id="foul40-list"></div>
+      </div>
+    </div>
+
+    <!-- Fouls Drawn (FTA as proxy) -->
+    <div class="section-block">
+      <div class="section-label">Fouls drawn — free throw attempts as proxy</div>
+      <p class="section-intro">Free throw attempts per game is the best available proxy for drawing fouls. Players who get to the line force opponents into foul trouble and shift game momentum.</p>
+      <div class="analysis-card">
+        <div class="analysis-card-title">FT attempts per game — season total in brackets</div>
+        <div id="drawn-list"></div>
+      </div>
+    </div>
+
+
+
+  </div>
+</div>
+
+<script src="js/players.js"></script>
+<script>
+const QUAL = PLAYERS.filter(p => p.gp >= 10 && p.mpg >= 6);
+
+// ── FOUL RISK CARDS ──
+const byPF = [...QUAL].sort((a,b) => b.pfpg - a.pfpg);
+document.getElementById('risk-grid').innerHTML = byPF.map(p => {
+  const cls  = p.pfpg >= 2.5 ? 'hi'  : p.pfpg >= 1.8 ? 'med' : 'low';
+  const label= p.pfpg >= 2.5 ? 'High Risk' : p.pfpg >= 1.8 ? 'Moderate' : 'Low Risk';
+  return `<div class="risk-card ${cls}">
+    <div class="risk-name">${p.name}</div>
+    <div class="risk-pos">#${p.num} · ${p.pos} · ${p.gp}G</div>
+    <div class="risk-val ${cls}">${p.pfpg}</div>
+    <div class="risk-label">PF / game</div>
+    <div class="risk-badge ${cls}">${label}</div>
+  </div>`;
+}).join('');
+
+// ── FOUL RATE / 40 ──
+const foul40 = [...QUAL]
+  .map(p => ({ ...p, pf40: +(p.pfpg / p.mpg * 40).toFixed(2) }))
+  .sort((a,b) => b.pf40 - a.pf40);
+const maxPF40 = foul40[0].pf40;
+document.getElementById('foul40-list').innerHTML = foul40.map(p => {
+  const pct = Math.round(p.pf40 / maxPF40 * 100);
+  const col = p.pf40 >= 6 ? '#D85A30' : p.pf40 >= 4 ? 'var(--gold)' : '#1D9E75';
+  return `<div class="foul-row">
+    <div class="foul-name">${p.name}</div>
+    <div class="foul-pos">${p.pos}</div>
+    <div class="foul-track"><div class="foul-fill" style="width:${pct}%;background:${col};"></div></div>
+    <div class="foul-val">${p.pf40}</div>
+    <div class="foul-note">${p.pfpg} pf/g · ${p.mpg}mpg</div>
+  </div>`;
+}).join('');
+
+// ── FOULS DRAWN (FTA/G) ──
+const ftaPerG = [...QUAL]
+  .map(p => ({ ...p, ftapg: +(p.fta / p.gp).toFixed(1) }))
+  .sort((a,b) => b.ftapg - a.ftapg);
+const maxFTA = ftaPerG[0].ftapg;
+document.getElementById('drawn-list').innerHTML = ftaPerG.map(p => {
+  const pct = Math.round(p.ftapg / maxFTA * 100);
+  return `<div class="drawn-row">
+    <div>
+      <div class="drawn-name">${p.name}</div>
+      <div class="drawn-pos">#${p.num} · ${p.pos}</div>
+    </div>
+    <div class="drawn-bar">
+      <div class="drawn-track"><div class="drawn-fill" style="width:${pct}%;"></div></div>
+    </div>
+    <div>
+      <div class="drawn-val">${p.ftapg}</div>
+      <div class="drawn-sub">FTA/G</div>
+    </div>
+    <div>
+      <div class="drawn-val" style="color:rgba(240,234,248,0.5);font-size:16px;">${p.fta}</div>
+      <div class="drawn-sub">season</div>
+    </div>
+  </div>`;
+}).join('');
+
+
+</script>
+<script>
+function toggleNav() {
+  document.getElementById('topnav-links').classList.toggle('open');
+  document.getElementById('nav-hamburger').classList.toggle('open');
+}
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

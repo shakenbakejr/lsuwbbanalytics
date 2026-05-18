@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Game Momentum · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.section-intro { font-size:13px; color:rgba(240,234,248,0.42); line-height:1.7; margin-bottom:1.25rem; font-weight:300; max-width:660px; }
+.section-block { margin-bottom:3rem; }
+
+.game-filter-row { display:flex; gap:8px; align-items:center; margin-bottom:1rem; flex-wrap:wrap; }
+.filter-btn {
+  font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.08em;
+  padding:6px 14px; border-radius:20px; border:0.5px solid rgba(240,234,248,0.12);
+  background:transparent; color:rgba(240,234,248,0.42); cursor:pointer; transition:all 0.15s;
+}
+.filter-btn:hover { border-color:rgba(255,255,255,0.35); color:#fff; }
+.filter-btn.active {  border-color:var(--purple); color:var(--gold); }
+
+.game-pills { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:1.5rem; }
+.game-pill {
+  font-family:'DM Mono',monospace; font-size:10px; padding:5px 11px; border-radius:20px;
+  border:0.5px solid rgba(240,234,248,0.1); background:rgba(255,255,255,0.02);
+  color:rgba(240,234,248,0.4); cursor:pointer; transition:all 0.15s; white-space:nowrap;
+}
+.game-pill:hover { border-color:rgba(240,234,248,0.3); color:#fff; }
+.game-pill.active {  border-color:var(--gold); color:var(--gold); }
+.game-pill.ranked { border-color:rgba(253,208,35,0.3); color:rgba(253,208,35,0.6); }
+.game-pill.ranked.active {  border-color:var(--gold); color:var(--gold); }
+.game-pill.loss { border-color:rgba(216,90,48,0.3); color:rgba(216,90,48,0.6); }
+.game-pill.loss.active { background:#5a1a00; border-color:#D85A30; color:#D85A30; }
+
+.chart-container { position:relative; width:100%; height:340px; margin-bottom:1.5rem; }
+
+.quarter-summary { display:grid; grid-template-columns:repeat(4,1fr) 1fr; gap:8px; margin-bottom:1.5rem; }
+@media(max-width:600px){ .quarter-summary { grid-template-columns:repeat(2,1fr); } }
+.q-card { background:rgba(255,255,255,0.02); border:0.5px solid rgba(240,234,248,0.08); border-radius:10px; padding:12px 14px; }
+.q-card.final { border-color:rgba(253,208,35,0.2); background:rgba(253,208,35,0.03); }
+.q-label { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px; }
+.q-scores { display:flex; flex-direction:column; gap:4px; }
+.q-row { display:flex; justify-content:space-between; align-items:center; }
+.q-team { font-size:11px; font-weight:500; }
+.q-team.lsu { color:var(--gold); }
+.q-team.opp { color:rgba(240,234,248,0.5); }
+.q-num { font-family:'Bebas Neue',sans-serif; font-size:22px; line-height:1; }
+.q-num.lsu { color:var(--gold); }
+.q-num.opp { color:rgba(240,234,248,0.4); }
+.q-num.final-lsu { color:var(--gold); font-size:28px; }
+.q-num.final-opp { color:rgba(240,234,248,0.4); font-size:28px; }
+.q-win-badge { font-family:'DM Mono',monospace; font-size:9px; padding:2px 7px; border-radius:10px; margin-top:6px; display:inline-block; text-transform:uppercase; letter-spacing:0.06em; }
+.q-win-badge.win { background:rgba(29,158,117,0.15); color:#1D9E75; border:0.5px solid rgba(29,158,117,0.3); }
+.q-win-badge.loss { background:rgba(216,90,48,0.15); color:#D85A30; border:0.5px solid rgba(216,90,48,0.3); }
+
+.game-info-banner { display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02); border:0.5px solid rgba(240,234,248,0.08); border-radius:10px; padding:12px 18px; margin-bottom:1.25rem; flex-wrap:wrap; gap:10px; }
+.game-result-badge { font-family:'Bebas Neue',sans-serif; font-size:22px; padding:4px 14px; border-radius:10px; }
+.game-result-badge.win  { background:rgba(29,158,117,0.15); color:#1D9E75; border:0.5px solid rgba(29,158,117,0.3); }
+.game-result-badge.loss { background:rgba(216,90,48,0.15);  color:#D85A30; border:0.5px solid rgba(216,90,48,0.3); }
+
+/* ── Query Panel ── */
+.query-panel { background:rgba(255,255,255,0.02); border:0.5px solid rgba(240,234,248,0.1); border-radius:10px; padding:22px 24px; margin-bottom:1.5rem; }
+.query-panel-title { font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:rgba(255,255,255,0.35); margin-bottom:18px; }
+.filter-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:18px 24px; margin-bottom:20px; }
+.filter-group { display:flex; flex-direction:column; gap:6px; }
+.filter-label { font-family:'DM Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.35); }
+.filter-select {
+  font-family:'DM Mono',monospace; font-size:11px;
+  background:rgba(255,255,255,0.04); border:0.5px solid rgba(240,234,248,0.1);
+  border-radius:10px; color:#fff; padding:7px 28px 7px 10px; cursor:pointer;
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(240,234,248,0.3)'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center;
+  transition:border-color 0.15s;
+}
+.filter-select:hover { border-color:rgba(255,255,255,0.25); }
+.filter-select:focus { outline:none; border-color:var(--gold); }
+.filter-select option { background:#1a0035; color:#fff; }
+
+.slider-wrap { display:flex; flex-direction:column; gap:5px; }
+.slider-row { display:flex; align-items:center; gap:10px; }
+.slider-row input[type=range] {
+  flex:1; -webkit-appearance:none; appearance:none;
+  height:4px; border-radius:10px; background:rgba(240,234,248,0.1); outline:none; cursor:pointer;
+}
+.slider-row input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+  background:var(--gold); cursor:pointer; box-shadow:0 0 6px rgba(253,208,35,0.4); transition:transform 0.1s;
+}
+.slider-row input[type=range]::-webkit-slider-thumb:hover { transform:scale(1.2); }
+.slider-val { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--gold); min-width:30px; text-align:right; line-height:1; }
+.slider-range-label { font-family:'DM Mono',monospace; font-size:9px; color:rgba(255,255,255,0.25); margin-top:2px; }
+
+.reset-btn {
+  font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.1em;
+  padding:7px 16px; border-radius:10px; background:transparent;
+  border:0.5px solid rgba(240,234,248,0.12); color:rgba(240,234,248,0.4); cursor:pointer; transition:all 0.15s;
+}
+.reset-btn:hover { border-color:rgba(255,255,255,0.35); color:#fff; }
+
+.results-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
+.results-count { font-family:'DM Mono',monospace; font-size:11px; color:rgba(240,234,248,0.4); }
+.results-count span { color:var(--gold); font-weight:500; }
+
+.results-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
+.result-card { background:rgba(255,255,255,0.02); border:0.5px solid rgba(240,234,248,0.08); border-radius:10px; padding:14px 16px; cursor:pointer; transition:all 0.18s; }
+.result-card:hover { border-color:rgba(253,208,35,0.3); background:rgba(253,208,35,0.03); }
+.result-card.selected { border-color:var(--gold); background:rgba(253,208,35,0.05); }
+.rc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+.rc-opp { font-size:13px; font-weight:500; color:#fff; }
+.rc-rank { font-family:'DM Mono',monospace; font-size:10px; color:var(--gold); }
+.rc-meta { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); margin-top:2px; }
+.rc-score { font-family:'Bebas Neue',sans-serif; font-size:20px; line-height:1; }
+.rc-score.w { color:#1D9E75; } .rc-score.l { color:#D85A30; }
+.rc-quarters { display:grid; grid-template-columns:repeat(4,1fr) auto; gap:4px; margin-top:10px; }
+.rc-q { text-align:center; background:rgba(255,255,255,0.03); border-radius:6px; padding:5px 4px; }
+.rc-q-label { font-family:'DM Mono',monospace; font-size:8px; color:rgba(255,255,255,0.25); }
+.rc-q-lsu { font-family:'Bebas Neue',sans-serif; font-size:16px; line-height:1.1; }
+.rc-q-lsu.won { color:var(--gold); } .rc-q-lsu.lost { color:rgba(255,255,255,0.35); }
+.rc-q-opp { font-family:'DM Mono',monospace; font-size:9px; color:rgba(255,255,255,0.25); }
+.rc-final { text-align:center; background:rgba(253,208,35,0.06); border:0.5px solid rgba(253,208,35,0.15); border-radius:6px; padding:5px 8px; }
+.rc-final-lsu { font-family:'Bebas Neue',sans-serif; font-size:20px; line-height:1; color:var(--gold); }
+.rc-final-opp { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.3); }
+.empty-state { text-align:center; padding:40px 20px; font-family:'DM Mono',monospace; font-size:12px; color:rgba(255,255,255,0.2); grid-column:1/-1; }
+.empty-state div:first-child { font-size:28px; margin-bottom:10px; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html" class="active">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="page-header">
+      <div class="page-eyebrow">Analytics · Game Momentum</div>
+      <h1 class="page-title">Game Momentum</h1>
+      <p class="page-subtitle">Quarter-by-quarter scoring · Interactive game query · 2025–26</p>
+    </div>
+
+    <div class="tab-row" style="margin-bottom:2rem;">
+      <a href="analytics-efficiency.html" class="tab-btn">Efficiency & Usage</a>
+      <a href="analytics-momentum.html" class="tab-btn">Momentum Tracker</a>
+      <a href="analytics-defense.html" class="tab-btn">Defensive Analytics</a>
+      <a href="analytics-advanced.html" class="tab-btn">Advanced</a>
+      <a href="analytics-fouls.html" class="tab-btn">Foul Analysis</a>
+      <a href="analytics-game-momentum.html" class="tab-btn active">Game Momentum</a>
+    </div>
+
+    <!-- ── 01: QUARTER BREAKDOWN ── -->
+    <div class="section-block">
+      <div class="section-label">01 — Quarter-by-quarter breakdown</div>
+      <p class="section-intro">Select any game to see the scoring breakdown by quarter. Gold bars = LSU won that quarter. Click any result card below to load a game here.</p>
+
+      <div class="game-filter-row">
+        <button class="filter-btn active" onclick="filterPills('all',this)">All</button>
+        <button class="filter-btn" onclick="filterPills('ranked',this)">vs. Ranked</button>
+        <button class="filter-btn" onclick="filterPills('wins',this)">Wins</button>
+        <button class="filter-btn" onclick="filterPills('losses',this)">Losses</button>
+        <button class="filter-btn" onclick="filterPills('sec',this)">SEC</button>
+        <button class="filter-btn" onclick="filterPills('ncaa',this)">NCAA</button>
+      </div>
+
+      <div class="game-pills" id="game-pills"></div>
+      <div class="game-info-banner" id="game-banner"></div>
+      <div class="quarter-summary" id="quarter-summary"></div>
+
+      <div class="glass-card">
+        <div class="chart-container">
+          <canvas id="quarterChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ── 02: GAME QUERY TOOL ── -->
+    <div class="section-block">
+      <div class="section-label">02 — Game query tool</div>
+      <p class="section-intro">Filter all 35 games live using the controls below. Click any result card to load that game's quarter breakdown above.</p>
+
+      <div class="query-panel">
+        <div class="query-panel-title">Filter Controls</div>
+        <div class="filter-grid">
+
+          <div class="filter-group">
+            <div class="filter-label">Game Type</div>
+            <select class="filter-select" id="f-type" onchange="runQuery()">
+              <option value="all">All Games</option>
+              <option value="Nonconf">Non-Conference</option>
+              <option value="SEC">SEC</option>
+              <option value="NCAA">NCAA Tournament</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">Result</div>
+            <select class="filter-select" id="f-result" onchange="runQuery()">
+              <option value="all">Wins & Losses</option>
+              <option value="W">Wins Only</option>
+              <option value="L">Losses Only</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">Opponent Rank</div>
+            <select class="filter-select" id="f-rank" onchange="runQuery()">
+              <option value="all">All Opponents</option>
+              <option value="ranked">vs. Ranked Only</option>
+              <option value="unranked">vs. Unranked Only</option>
+              <option value="top10">vs. Top 10 Only</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">LSU Score — Minimum</div>
+            <div class="slider-wrap">
+              <div class="slider-row">
+                <input type="range" id="f-lsu-min" min="60" max="126" value="60" step="1" oninput="syncLabel(this,'lbl-lsu-min'); runQuery()">
+                <div class="slider-val" id="lbl-lsu-min">60</div>
+              </div>
+              <div class="slider-range-label">Games where LSU scored ≥ this</div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">Opponent Score — Maximum</div>
+            <div class="slider-wrap">
+              <div class="slider-row">
+                <input type="range" id="f-opp-max" min="26" max="88" value="88" step="1" oninput="syncLabel(this,'lbl-opp-max'); runQuery()">
+                <div class="slider-val" id="lbl-opp-max">88</div>
+              </div>
+              <div class="slider-range-label">Games where opponent scored ≤ this</div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">LSU Best Quarter — Minimum</div>
+            <div class="slider-wrap">
+              <div class="slider-row">
+                <input type="range" id="f-best-q" min="10" max="40" value="10" step="1" oninput="syncLabel(this,'lbl-best-q'); runQuery()">
+                <div class="slider-val" id="lbl-best-q">10</div>
+              </div>
+              <div class="slider-range-label">Games where LSU had a quarter ≥ this</div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">Final Margin — Maximum</div>
+            <div class="slider-wrap">
+              <div class="slider-row">
+                <input type="range" id="f-margin" min="0" max="83" value="83" step="1" oninput="syncLabel(this,'lbl-margin'); runQuery()">
+                <div class="slider-val" id="lbl-margin">83</div>
+              </div>
+              <div class="slider-range-label">Games decided by ≤ this many points</div>
+            </div>
+          </div>
+
+        </div>
+        <button class="reset-btn" onclick="resetFilters()">↺ Reset All Filters</button>
+      </div>
+
+      <div class="results-header">
+        <div class="results-count"><span id="result-count">35</span> games match</div>
+      </div>
+      <div class="results-grid" id="results-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const GAMES = [
+  { id:1,  opp:"Houston Christian",  rank:null, result:"W", type:"Nonconf", lsu:[26,27,34,21], opp_q:[13,14,18,10] },
+  { id:2,  opp:"SE Louisiana",       rank:null, result:"W", type:"Nonconf", lsu:[30,31,30,24], opp_q:[4,2,7,13]    },
+  { id:3,  opp:"Georgia Southern",   rank:null, result:"W", type:"Nonconf", lsu:[31,36,21,30], opp_q:[16,20,23,11] },
+  { id:4,  opp:"Charlotte",          rank:null, result:"W", type:"Nonconf", lsu:[36,26,28,27], opp_q:[12,5,17,25]  },
+  { id:5,  opp:"Tulane",             rank:null, result:"W", type:"Nonconf", lsu:[33,25,20,23], opp_q:[10,24,18,19] },
+  { id:6,  opp:"Alcorn State",       rank:null, result:"W", type:"Nonconf", lsu:[31,26,29,26], opp_q:[11,10,14,14] },
+  { id:7,  opp:"Marist",             rank:null, result:"W", type:"Nonconf", lsu:[21,37,31,24], opp_q:[5,9,20,19]   },
+  { id:8,  opp:"Washington State",   rank:null, result:"W", type:"Nonconf", lsu:[29,25,30,28], opp_q:[8,9,15,3]    },
+  { id:9,  opp:"Duke",               rank:null, result:"W", type:"Nonconf", lsu:[20,31,20,22], opp_q:[24,19,18,16] },
+  { id:10, opp:"New Orleans",        rank:null, result:"W", type:"Nonconf", lsu:[28,35,36,27], opp_q:[12,17,15,18] },
+  { id:11, opp:"Louisiana Tech",     rank:null, result:"W", type:"Nonconf", lsu:[17,22,22,26], opp_q:[19,11,14,17] },
+  { id:12, opp:"Morgan State",       rank:null, result:"W", type:"Nonconf", lsu:[30,22,22,17], opp_q:[9,8,8,8]     },
+  { id:13, opp:"UT Arlington",       rank:null, result:"W", type:"Nonconf", lsu:[27,30,26,27], opp_q:[10,11,14,10] },
+  { id:14, opp:"Alabama State",      rank:null, result:"W", type:"Nonconf", lsu:[28,25,28,28], opp_q:[6,8,10,17]   },
+  { id:15, opp:"Kentucky",           rank:11,   result:"L", type:"SEC",     lsu:[23,18,24,13], opp_q:[22,19,19,20] },
+  { id:16, opp:"Vanderbilt",         rank:12,   result:"L", type:"SEC",     lsu:[12,16,15,18], opp_q:[15,7,20,23]  },
+  { id:17, opp:"Georgia",            rank:null, result:"W", type:"SEC",     lsu:[19,19,18,24], opp_q:[15,13,20,11] },
+  { id:18, opp:"Texas",              rank:2,    result:"W", type:"SEC",     lsu:[11,19,20,20], opp_q:[11,14,14,26] },
+  { id:19, opp:"Oklahoma",           rank:13,   result:"W", type:"SEC",     lsu:[24,21,25,21], opp_q:[16,19,17,20] },
+  { id:20, opp:"Texas A&M",          rank:null, result:"W", type:"SEC",     lsu:[21,20,37,20], opp_q:[12,10,19,13] },
+  { id:21, opp:"Florida",            rank:null, result:"W", type:"SEC",     lsu:[22,14,27,26], opp_q:[19,10,16,15] },
+  { id:22, opp:"Arkansas",           rank:null, result:"W", type:"SEC",     lsu:[22,14,33,23], opp_q:[22,11,17,20] },
+  { id:23, opp:"Alabama",            rank:24,   result:"W", type:"SEC",     lsu:[21,28,25,29], opp_q:[15,14,14,20] },
+  { id:24, opp:"Texas",              rank:4,    result:"L", type:"SEC",     lsu:[17,19,17,11], opp_q:[13,27,17,20] },
+  { id:25, opp:"Auburn",             rank:null, result:"W", type:"SEC",     lsu:[16,20,25,16], opp_q:[6,7,15,16]   },
+  { id:26, opp:"South Carolina",     rank:3,    result:"L", type:"SEC",     lsu:[21,19,15,17], opp_q:[16,25,19,19] },
+  { id:27, opp:"Ole Miss",           rank:17,   result:"W", type:"SEC",     lsu:[26,11,17,24], opp_q:[21,22,20,7]  },
+  { id:28, opp:"Missouri",           rank:null, result:"W", type:"SEC",     lsu:[23,31,31,23], opp_q:[14,8,15,18]  },
+  { id:29, opp:"Tennessee",          rank:null, result:"W", type:"SEC",     lsu:[16,27,27,19], opp_q:[20,22,17,14] },
+  { id:30, opp:"Mississippi State",  rank:null, result:"W", type:"SEC",     lsu:[12,23,19,18], opp_q:[14,8,25,16]  },
+  { id:31, opp:"Oklahoma",           rank:7,    result:"W", type:"SEC",     lsu:[28,17,27,40], opp_q:[19,14,16,29] },
+  { id:32, opp:"South Carolina",     rank:3,    result:"L", type:"SEC",     lsu:[17,23,14,23], opp_q:[21,15,23,24] },
+  { id:33, opp:"Jacksonville",       rank:null, result:"W", type:"NCAA",    lsu:[34,30,30,22], opp_q:[14,22,12,10] },
+  { id:34, opp:"Texas Tech",         rank:null, result:"W", type:"NCAA",    lsu:[19,24,33,25], opp_q:[14,11,7,15]  },
+  { id:35, opp:"Duke",               rank:3,    result:"L", type:"NCAA",    lsu:[19,21,25,20], opp_q:[24,23,20,20] },
+];
+
+const lsuTotal  = g => g.lsu.reduce((a,b)=>a+b,0);
+const oppTotal  = g => g.opp_q.reduce((a,b)=>a+b,0);
+const absMargin = g => Math.abs(lsuTotal(g)-oppTotal(g));
+const bestQ     = g => Math.max(...g.lsu);
+
+let currentGame = GAMES[17]; // Default: Texas win
+let qChart = null;
+
+/* ── Pill filter bar ── */
+function filterPills(f, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  let list = GAMES;
+  if (f==='ranked')  list = list.filter(g=>g.rank);
+  if (f==='wins')    list = list.filter(g=>g.result==='W');
+  if (f==='losses')  list = list.filter(g=>g.result==='L');
+  if (f==='sec')     list = list.filter(g=>g.type==='SEC');
+  if (f==='ncaa')    list = list.filter(g=>g.type==='NCAA');
+  renderPills(list);
+}
+
+function renderPills(list) {
+  document.getElementById('game-pills').innerHTML = list.map(g => {
+    const r = g.rank ? `(${g.rank}) ` : '';
+    const cls = ['game-pill', g.rank?'ranked':'', g.result==='L'?'loss':'', g.id===currentGame.id?'active':''].filter(Boolean).join(' ');
+    return `<button class="${cls}" onclick="selectGame(${g.id})">${g.result} ${r}${g.opp.split(' ').slice(-1)[0]}</button>`;
+  }).join('');
+}
+
+/* ── Select & display a game ── */
+function selectGame(id) {
+  const g = GAMES.find(x=>x.id===id);
+  if (!g) return;
+  currentGame = g;
+  document.querySelectorAll('.game-pill').forEach(p =>
+    p.classList.toggle('active', parseInt(p.onclick.toString().match(/\d+/)[0])===id)
+  );
+  document.querySelectorAll('.result-card').forEach(c =>
+    c.classList.toggle('selected', parseInt(c.dataset.id)===id)
+  );
+  renderBanner(g);
+  renderQuarterCards(g);
+  renderQuarterChart(g);
+  document.querySelector('.section-block').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderBanner(g) {
+  const lsu=lsuTotal(g), opp=oppTotal(g);
+  document.getElementById('game-banner').innerHTML = `
+    <div>
+      <div style="font-size:16px;font-weight:500;color:#fff;">${g.rank?`<span style="color:var(--gold);">(${g.rank}) </span>`:''}${g.opp}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;">Game ${g.id} · ${g.type} · ${g.result==='W'?'Win':'Loss'}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="text-align:right;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold);line-height:1;">LSU ${lsu}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.35);">${g.opp.split(' ').slice(-1)[0]} ${opp}</div>
+      </div>
+      <div class="game-result-badge ${g.result==='W'?'win':'loss'}">${g.result==='W'?'WIN':'LOSS'}</div>
+    </div>`;
+}
+
+function renderQuarterCards(g) {
+  const lsu=lsuTotal(g), opp=oppTotal(g);
+  const cards = [0,1,2,3].map(i => {
+    const won = g.lsu[i]>g.opp_q[i];
+    return `<div class="q-card">
+      <div class="q-label">Q${i+1}</div>
+      <div class="q-scores">
+        <div class="q-row"><span class="q-team lsu">LSU</span><span class="q-num lsu">${g.lsu[i]}</span></div>
+        <div class="q-row"><span class="q-team opp">${g.opp.split(' ').slice(-1)[0]}</span><span class="q-num opp">${g.opp_q[i]}</span></div>
+        <div class="q-win-badge ${won?'win':'loss'}">${won?`+${g.lsu[i]-g.opp_q[i]} LSU`:`+${g.opp_q[i]-g.lsu[i]} OPP`}</div>
+      </div>
+    </div>`;
+  }).join('');
+  const final = `<div class="q-card final">
+    <div class="q-label">Final</div>
+    <div class="q-scores">
+      <div class="q-row"><span class="q-team lsu">LSU</span><span class="q-num final-lsu">${lsu}</span></div>
+      <div class="q-row"><span class="q-team opp">${g.opp.split(' ').slice(-1)[0]}</span><span class="q-num final-opp">${opp}</span></div>
+    </div>
+  </div>`;
+  document.getElementById('quarter-summary').innerHTML = cards + final;
+}
+
+function renderQuarterChart(g) {
+  const lsuC = g.lsu.map((v,i)=>v>g.opp_q[i]?'rgba(253,208,35,0.85)':'rgba(253,208,35,0.3)');
+  const oppC = g.opp_q.map((v,i)=>v>g.lsu[i]?'rgba(216,90,48,0.75)':'rgba(255,255,255,0.14)');
+  if (qChart) {
+    qChart.data.datasets[0].data = g.lsu;
+    qChart.data.datasets[0].backgroundColor = lsuC;
+    qChart.data.datasets[1].data = g.opp_q;
+    qChart.data.datasets[1].backgroundColor = oppC;
+    qChart.data.datasets[1].label = g.opp;
+    qChart.update('active'); return;
+  }
+  qChart = new Chart(document.getElementById('quarterChart'), {
+    type:'bar',
+    data:{ labels:['Q1','Q2','Q3','Q4'],
+      datasets:[
+        {label:'LSU', data:g.lsu, backgroundColor:lsuC, borderRadius:6, borderSkipped:false},
+        {label:g.opp, data:g.opp_q, backgroundColor:oppC, borderRadius:6, borderSkipped:false}
+      ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true, labels:{color:'rgba(240,234,248,0.5)',font:{family:'DM Mono',size:11},boxWidth:12,boxHeight:12}},
+        tooltip:{backgroundColor:'#1a0035',titleColor:'var(--gold)',bodyColor:'rgba(240,234,248,0.8)',borderColor:'rgba(240,234,248,0.1)',borderWidth:1,
+          callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw} pts`}}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(240,234,248,0.5)',font:{family:'DM Mono',size:13}}},
+        y:{min:0,grid:{color:'rgba(240,234,248,0.07)'},ticks:{color:'rgba(240,234,248,0.3)',font:{family:'DM Mono',size:10}}}
+      },
+      animation:{duration:350,easing:'easeOutQuart'}
+    },
+    plugins:[{id:'diff',afterDatasetsDraw(chart){
+      const ctx=chart.ctx,m0=chart.getDatasetMeta(0),m1=chart.getDatasetMeta(1);
+      [0,1,2,3].forEach(i=>{
+        const e0=m0.data[i],e1=m1.data[i]; if(!e0||!e1) return;
+        const d=currentGame.lsu[i]-currentGame.opp_q[i];
+        ctx.save(); ctx.font="bold 11px 'DM Mono'"; ctx.textAlign='center';
+        ctx.fillStyle=d>0?'#1D9E75':d<0?'#D85A30':'rgba(240,234,248,0.3)';
+        ctx.fillText((d>=0?'+':'')+d,(e0.x+e1.x)/2,Math.min(e0.y,e1.y)-10); ctx.restore();
+      });
+    }}]
+  });
+}
+
+/* ── Query Tool ── */
+function syncLabel(el, lblId) {
+  document.getElementById(lblId).textContent = el.value;
+}
+
+function runQuery() {
+  const type    = document.getElementById('f-type').value;
+  const result  = document.getElementById('f-result').value;
+  const rank    = document.getElementById('f-rank').value;
+  const lsuMin  = parseInt(document.getElementById('f-lsu-min').value);
+  const oppMax  = parseInt(document.getElementById('f-opp-max').value);
+  const bqMin   = parseInt(document.getElementById('f-best-q').value);
+  const mrgMax  = parseInt(document.getElementById('f-margin').value);
+
+  const filtered = GAMES.filter(g => {
+    if (type !== 'all' && g.type !== type) return false;
+    if (result !== 'all' && g.result !== result) return false;
+    if (rank === 'ranked'   && !g.rank) return false;
+    if (rank === 'unranked' && g.rank)  return false;
+    if (rank === 'top10'    && (!g.rank || g.rank > 10)) return false;
+    if (lsuTotal(g) < lsuMin)    return false;
+    if (oppTotal(g) > oppMax)    return false;
+    if (bestQ(g) < bqMin)        return false;
+    if (absMargin(g) > mrgMax)   return false;
+    return true;
+  });
+
+  document.getElementById('result-count').textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    document.getElementById('results-grid').innerHTML =
+      `<div class="empty-state"><div>◎</div>No games match these filters.<br>Try adjusting the sliders or dropdowns.</div>`;
+    return;
+  }
+
+  const typeColors = {Nonconf:'rgba(255,255,255,0.2)',SEC:'#378ADD',NCAA:'#1D9E75'};
+  document.getElementById('results-grid').innerHTML = filtered.map(g => {
+    const lsu=lsuTotal(g), opp=oppTotal(g);
+    const qs = [0,1,2,3].map(i=>`<div class="rc-q">
+      <div class="rc-q-label">Q${i+1}</div>
+      <div class="rc-q-lsu ${g.lsu[i]>g.opp_q[i]?'won':'lost'}">${g.lsu[i]}</div>
+      <div class="rc-q-opp">${g.opp_q[i]}</div>
+    </div>`).join('');
+    return `<div class="result-card ${g.id===currentGame.id?'selected':''}" data-id="${g.id}" onclick="selectGame(${g.id})">
+      <div class="rc-top">
+        <div>
+          <div class="rc-opp">${g.opp}</div>
+          ${g.rank?`<div class="rc-rank">#${g.rank} AP</div>`:''}
+          <div class="rc-meta" style="color:${typeColors[g.type]}">${g.type}</div>
+        </div>
+        <div>
+          <div class="rc-score ${g.result.toLowerCase()}">${g.result} ${lsu}–${opp}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.25);text-align:right;margin-top:2px;">±${absMargin(g)}</div>
+        </div>
+      </div>
+      <div class="rc-quarters">${qs}
+        <div class="rc-final">
+          <div class="rc-final-lsu">${lsu}</div>
+          <div class="rc-final-opp">${opp}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function resetFilters() {
+  document.getElementById('f-type').value='all';
+  document.getElementById('f-result').value='all';
+  document.getElementById('f-rank').value='all';
+  const defaults = {['f-lsu-min']:60,['f-opp-max']:88,['f-best-q']:10,['f-margin']:83};
+  Object.entries(defaults).forEach(([id,val])=>{
+    document.getElementById(id).value=val;
+    document.getElementById('lbl-'+id.replace('f-','')).textContent=val;
+  });
+  runQuery();
+}
+
+function toggleNav() {
+  document.getElementById('topnav-links').classList.toggle('open');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  renderPills(GAMES);
+  selectGame(18);
+  runQuery();
+});
+</script>
+</body>
+</html>

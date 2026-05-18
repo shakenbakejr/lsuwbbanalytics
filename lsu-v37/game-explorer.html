@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Game Explorer · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+/* ── Matches explorer.html styling exactly ── */
+.explorer-form {
+  background: rgba(255,255,255,0.02);
+  border: 0.5px solid rgba(240,234,248,0.1);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 1.5rem;
+}
+.filter-section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: rgba(255,255,255,0.25);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  margin-bottom: 10px; margin-top: 18px;
+}
+.filter-section-label:first-child { margin-top: 0; }
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px; margin-bottom: 4px;
+}
+.filter-group { display: flex; flex-direction: column; gap: 5px; }
+.filter-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: rgba(255,255,255,0.35);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.filter-select {
+  background: rgba(240,234,248,0.07);
+  border: 0.5px solid rgba(240,234,248,0.12);
+  border-radius: 10px; padding: 8px 12px;
+  color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px;
+  outline: none; transition: border-color 0.15s;
+  width: 100%; box-sizing: border-box;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(240,234,248,0.3)'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; background-size: 10px;
+  padding-right: 30px;
+}
+.filter-select:focus { border-color: rgba(253,208,35,0.5); }
+.filter-select option { background: #1a0035; color: #fff; }
+
+/* Sliders — styled to match Explorer aesthetic */
+.slider-group { display: flex; flex-direction: column; gap: 5px; }
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider-row input[type=range] {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 10px;
+  background: rgba(240,234,248,0.1); outline: none; cursor: pointer;
+}
+.slider-row input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--gold); cursor: pointer; box-shadow: 0 0 6px rgba(253,208,35,0.3);
+  transition: transform 0.1s;
+}
+.slider-row input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.slider-val {
+  font-family: 'Oswald', sans-serif; font-size: 18px;
+  color: var(--gold); min-width: 34px; text-align: right; line-height: 1;
+}
+.slider-hint { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.2); margin-top: 1px; }
+
+.btn-row { display: flex; gap: 10px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+.run-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 24px;  color: var(--gold);
+  border: none; border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s;
+}
+.run-btn:hover { background: #5a27a0; }
+.reset-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 18px;
+  background: transparent; border: 0.5px solid rgba(240,234,248,0.12);
+  border-radius: 10px; color: rgba(240,234,248,0.4);
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  cursor: pointer; transition: all 0.15s;
+}
+.reset-btn:hover { border-color: rgba(255,255,255,0.35); color: #fff; }
+
+.data-note { font-size: 11px; color: rgba(255,255,255,0.2);  margin-top: 14px; line-height: 1.5; }
+
+/* Results */
+.results-wrap { display: none; }
+.results-wrap.visible { display: block; }
+
+.summary-banner {
+  background: rgba(59,31,106,0.2); border: 0.5px solid rgba(59,31,106,0.4);
+  border-radius: 10px; padding: 14px 20px; margin-bottom: 1rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.sb-main { font-size: 15px; color: #fff; font-weight: 500; }
+.sb-main span { color: var(--gold); font-family: 'Oswald', sans-serif; font-size: 22px; }
+.sb-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,234,248,0.4); text-transform: uppercase; letter-spacing: 0.08em; }
+
+.stat-summary-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.ss-pill { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(240,234,248,0.1); border-radius: 10px; padding: 8px 14px; text-align: center; }
+.ss-pill-val { font-family: 'Oswald', sans-serif; font-size: 22px; color: var(--gold); line-height: 1; }
+.ss-pill-label { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; }
+.ss-pill.green .ss-pill-val { color: #1D9E75; }
+.ss-pill.red   .ss-pill-val { color: #D85A30; }
+
+.chart-type-btn {
+  padding: 5px 14px; border-radius: 6px;
+  border: 0.5px solid rgba(240,234,248,0.12);
+  background: transparent; color: rgba(240,234,248,0.4);
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  cursor: pointer; transition: all 0.15s;
+}
+.chart-type-btn:hover { color: #fff; border-color: rgba(240,234,248,0.3); }
+.chart-type-btn.active {  border-color: var(--purple); color: var(--gold); }
+
+/* Result cards */
+.results-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 10px; margin-top: 1rem; }
+.result-card {
+  background: rgba(255,255,255,0.02); border: 0.5px solid rgba(240,234,248,0.08);
+  border-radius: 10px; padding: 14px 16px; transition: all 0.18s;
+}
+.result-card:hover { border-color: rgba(253,208,35,0.25); background: rgba(253,208,35,0.02); }
+.rc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.rc-opp { font-size: 13px; font-weight: 500; color: #fff; }
+.rc-rank { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold); }
+.rc-type { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(240,234,248,0.3); margin-top: 2px; }
+.rc-score { font-family: 'Oswald', sans-serif; font-size: 20px; line-height: 1; }
+.rc-score.w { color: #1D9E75; } .rc-score.l { color: #D85A30; }
+.rc-quarters { display: grid; grid-template-columns: repeat(4,1fr) auto; gap: 4px; margin-top: 10px; }
+.rc-q { text-align: center; background: rgba(255,255,255,0.03); border-radius: 6px; padding: 5px 4px; }
+.rc-q-label { font-family: 'DM Mono', monospace; font-size: 8px; color: rgba(255,255,255,0.25); }
+.rc-q-lsu { font-family: 'Oswald', sans-serif; font-size: 16px; line-height: 1.1; }
+.rc-q-lsu.won { color: var(--gold); } .rc-q-lsu.lost { color: rgba(255,255,255,0.35); }
+.rc-q-opp { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.25); }
+.rc-final { text-align: center; background: rgba(253,208,35,0.06); border: 0.5px solid rgba(253,208,35,0.15); border-radius: 6px; padding: 5px 8px; }
+.rc-final-lsu { font-family: 'Oswald', sans-serif; font-size: 20px; line-height: 1; color: var(--gold); }
+.rc-final-opp { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(240,234,248,0.3); }
+
+.no-results { text-align: center; padding: 3rem 0; font-size: 14px; color: rgba(240,234,248,0.3); }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html" class="active">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="page-header">
+      <div class="page-eyebrow">Game Explorer</div>
+      <h1 class="page-title">Game Query</h1>
+      <p class="page-subtitle">Filter all 35 games by type, result, opponent rank, scoring thresholds, and margin · Results update with averages + chart</p>
+    </div>
+
+    <!-- ── Filter Form ── -->
+    <div class="explorer-form">
+
+      <div class="filter-section-label">Game Filters</div>
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label class="filter-label">Game Type</label>
+          <select class="filter-select" id="f-type">
+            <option value="all">All Games</option>
+            <option value="Nonconf">Non-Conference</option>
+            <option value="SEC">SEC</option>
+            <option value="NCAA">NCAA Tournament</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Result</label>
+          <select class="filter-select" id="f-result">
+            <option value="all">Wins & Losses</option>
+            <option value="W">Wins Only</option>
+            <option value="L">Losses Only</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Opponent Rank</label>
+          <select class="filter-select" id="f-rank">
+            <option value="all">All Opponents</option>
+            <option value="ranked">vs. Ranked Only</option>
+            <option value="unranked">vs. Unranked Only</option>
+            <option value="top10">vs. Top 10 Only</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-section-label">Scoring Thresholds</div>
+      <div class="filter-grid">
+        <div class="slider-group">
+          <label class="filter-label">LSU Score — Minimum</label>
+          <div class="slider-row">
+            <input type="range" id="f-lsu-min" min="60" max="126" value="60" step="1" oninput="sync(this,'lbl-lsu-min')">
+            <div class="slider-val" id="lbl-lsu-min">60</div>
+          </div>
+          <div class="slider-hint">Show games where LSU scored ≥ this</div>
+        </div>
+        <div class="slider-group">
+          <label class="filter-label">Opponent Score — Maximum</label>
+          <div class="slider-row">
+            <input type="range" id="f-opp-max" min="26" max="88" value="88" step="1" oninput="sync(this,'lbl-opp-max')">
+            <div class="slider-val" id="lbl-opp-max">88</div>
+          </div>
+          <div class="slider-hint">Show games where opponent scored ≤ this</div>
+        </div>
+        <div class="slider-group">
+          <label class="filter-label">LSU Best Quarter — Minimum</label>
+          <div class="slider-row">
+            <input type="range" id="f-best-q" min="10" max="40" value="10" step="1" oninput="sync(this,'lbl-best-q')">
+            <div class="slider-val" id="lbl-best-q">10</div>
+          </div>
+          <div class="slider-hint">Show games where LSU had a quarter ≥ this</div>
+        </div>
+        <div class="slider-group">
+          <label class="filter-label">Final Margin — Maximum</label>
+          <div class="slider-row">
+            <input type="range" id="f-margin" min="0" max="83" value="83" step="1" oninput="sync(this,'lbl-margin')">
+            <div class="slider-val" id="lbl-margin">83</div>
+          </div>
+          <div class="slider-hint">Show games decided by ≤ this many points</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="run-btn" onclick="runQuery()">Search ↗</button>
+        <button class="reset-btn" onclick="resetFilters()">↺ Reset</button>
+      </div>
+      <p class="data-note">Quarter scores verified from ESPN box scores · All 35 games of the 2025–26 season included.</p>
+    </div>
+
+    <!-- ── Results ── -->
+    <div class="results-wrap" id="results-wrap">
+
+      <!-- Summary Banner -->
+      <div class="summary-banner">
+        <div>
+          <div class="sb-main" id="summary-main">Results</div>
+          <div class="sb-sub" id="summary-sub"></div>
+        </div>
+      </div>
+
+      <!-- Stat Pills -->
+      <div class="stat-summary-row" id="stat-pills"></div>
+
+      <!-- Chart -->
+      <div class="glass-card" style="margin-bottom:1.25rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <div id="chart-title" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;"></div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="setChartType('bar')"  id="ct-bar"  class="chart-type-btn active">Bar</button>
+            <button onclick="setChartType('line')" id="ct-line" class="chart-type-btn">Line</button>
+          </div>
+        </div>
+        <div style="position:relative;height:260px;">
+          <canvas id="resultsChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Result Cards -->
+      <div class="results-grid" id="results-grid"></div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const GAMES = [
+  { id:1,  opp:"Houston Christian",  rank:null, result:"W", type:"Nonconf", lsu:[26,27,34,21], opp_q:[13,14,18,10] },
+  { id:2,  opp:"SE Louisiana",       rank:null, result:"W", type:"Nonconf", lsu:[30,31,30,24], opp_q:[4,2,7,13]    },
+  { id:3,  opp:"Georgia Southern",   rank:null, result:"W", type:"Nonconf", lsu:[31,36,21,30], opp_q:[16,20,23,11] },
+  { id:4,  opp:"Charlotte",          rank:null, result:"W", type:"Nonconf", lsu:[36,26,28,27], opp_q:[12,5,17,25]  },
+  { id:5,  opp:"Tulane",             rank:null, result:"W", type:"Nonconf", lsu:[33,25,20,23], opp_q:[10,24,18,19] },
+  { id:6,  opp:"Alcorn State",       rank:null, result:"W", type:"Nonconf", lsu:[31,26,29,26], opp_q:[11,10,14,14] },
+  { id:7,  opp:"Marist",             rank:null, result:"W", type:"Nonconf", lsu:[21,37,31,24], opp_q:[5,9,20,19]   },
+  { id:8,  opp:"Washington State",   rank:null, result:"W", type:"Nonconf", lsu:[29,25,30,28], opp_q:[8,9,15,3]    },
+  { id:9,  opp:"Duke",               rank:null, result:"W", type:"Nonconf", lsu:[20,31,20,22], opp_q:[24,19,18,16] },
+  { id:10, opp:"New Orleans",        rank:null, result:"W", type:"Nonconf", lsu:[28,35,36,27], opp_q:[12,17,15,18] },
+  { id:11, opp:"Louisiana Tech",     rank:null, result:"W", type:"Nonconf", lsu:[17,22,22,26], opp_q:[19,11,14,17] },
+  { id:12, opp:"Morgan State",       rank:null, result:"W", type:"Nonconf", lsu:[30,22,22,17], opp_q:[9,8,8,8]     },
+  { id:13, opp:"UT Arlington",       rank:null, result:"W", type:"Nonconf", lsu:[27,30,26,27], opp_q:[10,11,14,10] },
+  { id:14, opp:"Alabama State",      rank:null, result:"W", type:"Nonconf", lsu:[28,25,28,28], opp_q:[6,8,10,17]   },
+  { id:15, opp:"Kentucky",           rank:11,   result:"L", type:"SEC",     lsu:[23,18,24,13], opp_q:[22,19,19,20] },
+  { id:16, opp:"Vanderbilt",         rank:12,   result:"L", type:"SEC",     lsu:[12,16,15,18], opp_q:[15,7,20,23]  },
+  { id:17, opp:"Georgia",            rank:null, result:"W", type:"SEC",     lsu:[19,19,18,24], opp_q:[15,13,20,11] },
+  { id:18, opp:"Texas",              rank:2,    result:"W", type:"SEC",     lsu:[11,19,20,20], opp_q:[11,14,14,26] },
+  { id:19, opp:"Oklahoma",           rank:13,   result:"W", type:"SEC",     lsu:[24,21,25,21], opp_q:[16,19,17,20] },
+  { id:20, opp:"Texas A&M",          rank:null, result:"W", type:"SEC",     lsu:[21,20,37,20], opp_q:[12,10,19,13] },
+  { id:21, opp:"Florida",            rank:null, result:"W", type:"SEC",     lsu:[22,14,27,26], opp_q:[19,10,16,15] },
+  { id:22, opp:"Arkansas",           rank:null, result:"W", type:"SEC",     lsu:[22,14,33,23], opp_q:[22,11,17,20] },
+  { id:23, opp:"Alabama",            rank:24,   result:"W", type:"SEC",     lsu:[21,28,25,29], opp_q:[15,14,14,20] },
+  { id:24, opp:"Texas",              rank:4,    result:"L", type:"SEC",     lsu:[17,19,17,11], opp_q:[13,27,17,20] },
+  { id:25, opp:"Auburn",             rank:null, result:"W", type:"SEC",     lsu:[16,20,25,16], opp_q:[6,7,15,16]   },
+  { id:26, opp:"South Carolina",     rank:3,    result:"L", type:"SEC",     lsu:[21,19,15,17], opp_q:[16,25,19,19] },
+  { id:27, opp:"Ole Miss",           rank:17,   result:"W", type:"SEC",     lsu:[26,11,17,24], opp_q:[21,22,20,7]  },
+  { id:28, opp:"Missouri",           rank:null, result:"W", type:"SEC",     lsu:[23,31,31,23], opp_q:[14,8,15,18]  },
+  { id:29, opp:"Tennessee",          rank:null, result:"W", type:"SEC",     lsu:[16,27,27,19], opp_q:[20,22,17,14] },
+  { id:30, opp:"Mississippi State",  rank:null, result:"W", type:"SEC",     lsu:[12,23,19,18], opp_q:[14,8,25,16]  },
+  { id:31, opp:"Oklahoma",           rank:7,    result:"W", type:"SEC",     lsu:[28,17,27,40], opp_q:[19,14,16,29] },
+  { id:32, opp:"South Carolina",     rank:3,    result:"L", type:"SEC",     lsu:[17,23,14,23], opp_q:[21,15,23,24] },
+  { id:33, opp:"Jacksonville",       rank:null, result:"W", type:"NCAA",    lsu:[34,30,30,22], opp_q:[14,22,12,10] },
+  { id:34, opp:"Texas Tech",         rank:null, result:"W", type:"NCAA",    lsu:[19,24,33,25], opp_q:[14,11,7,15]  },
+  { id:35, opp:"Duke",               rank:3,    result:"L", type:"NCAA",    lsu:[19,21,25,20], opp_q:[24,23,20,20] },
+];
+
+const lsuTotal  = g => g.lsu.reduce((a,b)=>a+b,0);
+const oppTotal  = g => g.opp_q.reduce((a,b)=>a+b,0);
+const absMargin = g => Math.abs(lsuTotal(g)-oppTotal(g));
+const bestQ     = g => Math.max(...g.lsu);
+const avg       = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length) : 0;
+const f1        = n => (+n).toFixed(1);
+
+let resultsChart = null;
+let currentType = 'bar';
+let lastFiltered = [];
+
+function sync(el, lblId) {
+  document.getElementById(lblId).textContent = el.value;
+}
+
+function runQuery() {
+  const type   = document.getElementById('f-type').value;
+  const result = document.getElementById('f-result').value;
+  const rank   = document.getElementById('f-rank').value;
+  const lsuMin = parseInt(document.getElementById('f-lsu-min').value);
+  const oppMax = parseInt(document.getElementById('f-opp-max').value);
+  const bqMin  = parseInt(document.getElementById('f-best-q').value);
+  const mrgMax = parseInt(document.getElementById('f-margin').value);
+
+  lastFiltered = GAMES.filter(g => {
+    if (type !== 'all' && g.type !== type) return false;
+    if (result !== 'all' && g.result !== result) return false;
+    if (rank === 'ranked'   && !g.rank) return false;
+    if (rank === 'unranked' && g.rank)  return false;
+    if (rank === 'top10'    && (!g.rank || g.rank > 10)) return false;
+    if (lsuTotal(g) < lsuMin)   return false;
+    if (oppTotal(g) > oppMax)   return false;
+    if (bestQ(g) < bqMin)       return false;
+    if (absMargin(g) > mrgMax)  return false;
+    return true;
+  });
+
+  renderResults(lastFiltered);
+  document.getElementById('results-wrap').classList.add('visible');
+}
+
+function renderResults(filtered) {
+  const wins   = filtered.filter(g=>g.result==='W').length;
+  const losses = filtered.filter(g=>g.result==='L').length;
+  const lsuAvg = avg(filtered.map(lsuTotal));
+  const oppAvg = avg(filtered.map(oppTotal));
+  const marginAvg = avg(filtered.map(absMargin));
+  const bestQAvg = avg(filtered.map(bestQ));
+
+  // Per-quarter averages
+  const q1avg = avg(filtered.map(g=>g.lsu[0]));
+  const q2avg = avg(filtered.map(g=>g.lsu[1]));
+  const q3avg = avg(filtered.map(g=>g.lsu[2]));
+  const q4avg = avg(filtered.map(g=>g.lsu[3]));
+
+  // Summary banner
+  document.getElementById('summary-main').innerHTML =
+    `<span>${filtered.length}</span> game${filtered.length!==1?'s':''} match your filters`;
+  document.getElementById('summary-sub').textContent =
+    filtered.length ? `${wins}W – ${losses}L · Avg score: LSU ${f1(lsuAvg)} – Opp ${f1(oppAvg)}` : 'No games found';
+
+  // Stat pills
+  document.getElementById('stat-pills').innerHTML = filtered.length ? `
+    <div class="ss-pill"><div class="ss-pill-val">${wins}-${losses}</div><div class="ss-pill-label">Record</div></div>
+    <div class="ss-pill"><div class="ss-pill-val">${f1(lsuAvg)}</div><div class="ss-pill-label">LSU Avg</div></div>
+    <div class="ss-pill"><div class="ss-pill-val">${f1(oppAvg)}</div><div class="ss-pill-label">Opp Avg</div></div>
+    <div class="ss-pill ${lsuAvg>oppAvg?'green':'red'}"><div class="ss-pill-val">${lsuAvg>=oppAvg?'+':''}${f1(lsuAvg-oppAvg)}</div><div class="ss-pill-label">Avg Margin</div></div>
+    <div class="ss-pill"><div class="ss-pill-val">${f1(bestQAvg)}</div><div class="ss-pill-label">Avg Best Q</div></div>
+    <div class="ss-pill"><div class="ss-pill-val">${f1(q3avg)}</div><div class="ss-pill-label">Avg Q3</div></div>
+  ` : '';
+
+  // Chart
+  renderChart(filtered);
+
+  // Cards
+  if (filtered.length === 0) {
+    document.getElementById('results-grid').innerHTML =
+      `<div class="no-results" style="grid-column:1/-1;">No games match these filters. Try adjusting the sliders or dropdowns.</div>`;
+    return;
+  }
+
+  const typeColors = {Nonconf:'rgba(255,255,255,0.2)',SEC:'#378ADD',NCAA:'#1D9E75'};
+  document.getElementById('results-grid').innerHTML = filtered.map(g => {
+    const lsu=lsuTotal(g), opp=oppTotal(g);
+    const qs = [0,1,2,3].map(i=>`<div class="rc-q">
+      <div class="rc-q-label">Q${i+1}</div>
+      <div class="rc-q-lsu ${g.lsu[i]>g.opp_q[i]?'won':'lost'}">${g.lsu[i]}</div>
+      <div class="rc-q-opp">${g.opp_q[i]}</div>
+    </div>`).join('');
+    return `<div class="result-card">
+      <div class="rc-top">
+        <div>
+          <div class="rc-opp">${g.opp}</div>
+          ${g.rank?`<div class="rc-rank">#${g.rank} AP</div>`:''}
+          <div class="rc-type" style="color:${typeColors[g.type]}">${g.type}</div>
+        </div>
+        <div>
+          <div class="rc-score ${g.result.toLowerCase()}">${g.result} ${lsu}–${opp}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.25);text-align:right;margin-top:2px;">±${absMargin(g)}</div>
+        </div>
+      </div>
+      <div class="rc-quarters">${qs}
+        <div class="rc-final">
+          <div class="rc-final-lsu">${lsu}</div>
+          <div class="rc-final-opp">${opp}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderChart(filtered) {
+  document.getElementById('chart-title').textContent =
+    `LSU vs Opponent Score — ${filtered.length} game${filtered.length!==1?'s':''}`;
+
+  const labels = filtered.map(g => {
+    const r = g.rank ? `(${g.rank}) ` : '';
+    return `${r}${g.opp.split(' ').slice(-1)[0]}`;
+  });
+  const lsuData = filtered.map(lsuTotal);
+  const oppData = filtered.map(oppTotal);
+  const lsuColors = filtered.map(g => g.result==='W' ? 'rgba(253,208,35,0.8)' : 'rgba(253,208,35,0.35)');
+
+  if (resultsChart) {
+    resultsChart.config.type = currentType;
+    resultsChart.data.labels = labels;
+    resultsChart.data.datasets[0].data = lsuData;
+    resultsChart.data.datasets[0].backgroundColor = lsuColors;
+    resultsChart.data.datasets[0].borderColor = lsuColors;
+    resultsChart.data.datasets[1].data = oppData;
+    resultsChart.update();
+    return;
+  }
+
+  resultsChart = new Chart(document.getElementById('resultsChart'), {
+    type: currentType,
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'LSU',
+          data: lsuData,
+          backgroundColor: lsuColors,
+          borderColor: lsuColors,
+          borderWidth: 2,
+          borderRadius: 4,
+          tension: 0.3,
+          pointBackgroundColor: lsuColors,
+          pointRadius: 5,
+        },
+        {
+          label: 'Opponent',
+          data: oppData,
+          backgroundColor: 'rgba(240,234,248,0.1)',
+          borderColor: 'rgba(240,234,248,0.3)',
+          borderWidth: 2,
+          borderRadius: 4,
+          tension: 0.3,
+          pointBackgroundColor: 'rgba(240,234,248,0.3)',
+          pointRadius: 5,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, labels: { color:'rgba(240,234,248,0.5)', font:{family:'DM Mono',size:11}, boxWidth:12, boxHeight:12 }},
+        tooltip: {
+          backgroundColor:'#1a0035', titleColor:'var(--gold)',
+          bodyColor:'rgba(240,234,248,0.8)', borderColor:'rgba(240,234,248,0.1)', borderWidth:1,
+          callbacks: {
+            title: ctx => {
+              const g = filtered[ctx[0].dataIndex];
+              return `${g.result} vs ${g.rank?`(${g.rank}) `:''}${g.opp}`;
+            },
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}`
+          }
+        }
+      },
+      scales: {
+        x: { grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'rgba(240,234,248,0.3)',font:{family:'DM Mono',size:9},maxRotation:45} },
+        y: { min:0, grid:{color:'rgba(240,234,248,0.07)'}, ticks:{color:'rgba(240,234,248,0.3)',font:{family:'DM Mono',size:10}} }
+      },
+      animation:{ duration:350, easing:'easeOutQuart' }
+    }
+  });
+}
+
+function setChartType(type) {
+  currentType = type;
+  document.querySelectorAll('.chart-type-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ct-'+type).classList.add('active');
+  if (resultsChart) {
+    resultsChart.config.type = type;
+    resultsChart.update();
+  }
+}
+
+function resetFilters() {
+  document.getElementById('f-type').value='all';
+  document.getElementById('f-result').value='all';
+  document.getElementById('f-rank').value='all';
+  const defaults={['f-lsu-min']:60,['f-opp-max']:88,['f-best-q']:10,['f-margin']:83};
+  const lblMap={['f-lsu-min']:'lbl-lsu-min',['f-opp-max']:'lbl-opp-max',['f-best-q']:'lbl-best-q',['f-margin']:'lbl-margin'};
+  Object.entries(defaults).forEach(([id,val])=>{
+    document.getElementById(id).value=val;
+    document.getElementById(lblMap[id]).textContent=val;
+  });
+  document.getElementById('results-wrap').classList.remove('visible');
+}
+
+function toggleNav() {
+  document.getElementById('topnav-links').classList.toggle('open');
+}
+</script>
+</body>
+</html>

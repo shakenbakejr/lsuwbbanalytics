@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Stats Explorer · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.explorer-form {
+  background: rgba(255,255,255,0.02);
+  border: 0.5px solid rgba(240,234,248,0.1);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 1.5rem;
+}
+.filter-section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: rgba(255,255,255,0.25);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  margin-bottom: 10px; margin-top: 18px;
+}
+.filter-section-label:first-child { margin-top: 0; }
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px; margin-bottom: 4px;
+}
+.filter-group { display: flex; flex-direction: column; gap: 5px; }
+.filter-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: rgba(255,255,255,0.35);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.filter-select, .filter-input {
+  background: rgba(240,234,248,0.07);
+  border: 0.5px solid rgba(240,234,248,0.12);
+  border-radius: 10px; padding: 8px 12px;
+  color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px;
+  outline: none; transition: border-color 0.15s;
+  width: 100%; box-sizing: border-box;
+}
+.filter-select:focus, .filter-input:focus { border-color: rgba(253,208,35,0.5); }
+.filter-select option { background: #1a0035; color: #fff; }
+.filter-input::placeholder { color: rgba(255,255,255,0.2); }
+.filter-input[type="number"] { -moz-appearance: textfield; }
+.filter-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.player-slots { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.player-slot {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(240,234,248,0.1);
+  border-radius: 10px; padding: 4px 4px 4px 10px;
+  min-width: 190px;
+}
+.player-slot select {
+  background: transparent; border: none;
+  color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px;
+  outline: none; flex: 1; cursor: pointer;
+}
+.player-slot select option { background: #1a0035; }
+.slot-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.slot-remove {
+  background: rgba(255,255,255,0.06); border: none;
+  color: rgba(240,234,248,0.3); font-size: 14px; cursor: pointer;
+  border-radius: 6px; padding: 2px 8px; line-height: 1.4;
+  transition: all 0.12s;
+}
+.slot-remove:hover { background: rgba(216,90,48,0.2); color: #D85A30; }
+
+
+.btn-row { display: flex; gap: 10px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+.run-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 24px;  color: var(--gold);
+  border: none; border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s;
+}
+.run-btn:hover { background: #5a27a0; }
+.csv-btn {
+  display: none; align-items: center; gap: 6px;
+  padding: 10px 18px;
+  background: rgba(29,158,117,0.15); border: 0.5px solid rgba(29,158,117,0.4);
+  border-radius: 10px; color: #1D9E75;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+}
+.csv-btn:hover { background: rgba(29,158,117,0.25); }
+.csv-btn.visible { display: flex; }
+
+.results-wrap { display: none; }
+.results-wrap.visible { display: block; }
+
+.summary-banner {
+  background: rgba(59,31,106,0.2); border: 0.5px solid rgba(59,31,106,0.4);
+  border-radius: 10px; padding: 14px 20px; margin-bottom: 1rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.sb-main { font-size: 15px; color: #fff; font-weight: 500; }
+.sb-main span { color: var(--gold); font-family: 'Oswald', sans-serif; font-size: 22px; }
+.sb-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(240,234,248,0.4); text-transform: uppercase; letter-spacing: 0.08em; }
+
+.stat-summary-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.ss-pill { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(240,234,248,0.1); border-radius: 10px; padding: 8px 14px; text-align: center; }
+.ss-pill-val { font-family: 'Oswald', sans-serif; font-size: 22px; color: var(--gold); line-height: 1; }
+.ss-pill-label { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; }
+
+.results-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.results-table th {
+  font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(240,234,248,0.3);
+  text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 10px;
+  text-align: left; border-bottom: 0.5px solid rgba(240,234,248,0.08);
+  cursor: pointer; white-space: nowrap; user-select: none;
+}
+.results-table th:hover { color: rgba(240,234,248,0.6); }
+.results-table th.sort-asc::after  { content: " ↑"; color: var(--gold); }
+.results-table th.sort-desc::after { content: " ↓"; color: var(--gold); }
+.results-table td {
+  padding: 9px 10px; border-bottom: 0.5px solid rgba(255,255,255,0.04);
+  color: rgba(240,234,248,0.75); white-space: nowrap;
+}
+.results-table tr:last-child td { border: none; }
+.results-table tr:hover td { background: rgba(255,255,255,0.02); }
+.td-player { font-weight: 500; color: #fff; }
+.td-opp  { color: #fff; font-weight: 500; }
+.td-date { font-family: 'DM Mono', monospace; color: rgba(255,255,255,0.35); }
+.td-stat-hi { color: var(--gold); font-family: 'DM Mono', monospace; font-weight: 500; }
+.td-stat { font-family: 'DM Mono', monospace; }
+.td-w { color: #1D9E75; font-family: 'DM Mono', monospace; font-weight: 500; font-size: 11px; }
+.td-l { color: #D85A30; font-family: 'DM Mono', monospace; font-weight: 500; font-size: 11px; }
+.td-home { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(240,234,248,0.3); }
+.no-results { text-align: center; padding: 3rem 0; font-size: 14px; color: rgba(240,234,248,0.3); }
+
+.chart-type-btn {
+  padding:5px 14px; border-radius:6px;
+  border:0.5px solid rgba(240,234,248,0.12);
+  background:transparent; color:rgba(240,234,248,0.4);
+  font-family:'DM Mono',monospace; font-size:10px;
+  text-transform:uppercase; letter-spacing:0.08em;
+  cursor:pointer; transition:all 0.15s;
+}
+.chart-type-btn:hover { color:#fff; border-color:rgba(240,234,248,0.3); }
+.chart-type-btn.active {  border-color:var(--purple); color:var(--gold); }
+
+.data-note { font-size: 11px; color: rgba(255,255,255,0.2);  margin-top: 14px; line-height: 1.5; }
+.p-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html" class="active">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="page-header">
+      <div class="page-eyebrow">Stats Explorer</div>
+      <h1 class="page-title">Stat Explorer</h1>
+      <p class="page-subtitle">Filter game-by-game stats · Compare up to 4 players · Set stat thresholds · Export to CSV · All data verified from ESPN</p>
+    </div>
+
+    <div class="explorer-form">
+
+      <div class="filter-section-label">Players — up to 4</div>
+      <div class="player-slots" id="player-slots"></div>
+
+
+      <div class="filter-section-label">Filters</div>
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label class="filter-label">Stat to highlight</label>
+          <select class="filter-select" id="f-stat">
+            <option value="pts">Points</option>
+            <option value="reb">Rebounds</option>
+            <option value="ast">Assists</option>
+            <option value="stl">Steals</option>
+            <option value="blk">Blocks</option>
+            <option value="tov">Turnovers</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Game type</label>
+          <select class="filter-select" id="f-type">
+            <option value="all">All games</option>
+            <option value="sec">Conference games only</option>
+            <option value="nonconf">Non-conference only</option>
+            <option value="ncaa">NCAA Tournament</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Result</label>
+          <select class="filter-select" id="f-result">
+            <option value="all">Wins & losses</option>
+            <option value="W">Wins only</option>
+            <option value="L">Losses only</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Location</label>
+          <select class="filter-select" id="f-loc">
+            <option value="all">All locations</option>
+            <option value="home">Home</option>
+            <option value="away">Away</option>
+            <option value="neutral">Neutral</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Opponent strength</label>
+          <select class="filter-select" id="f-strength">
+            <option value="all">All opponents</option>
+            <option value="ranked">Ranked only</option>
+            <option value="over500">Over .500</option>
+            <option value="under500">Under .500</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-section-label">Minimum stat thresholds</div>
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label class="filter-label">Min Points</label>
+          <input class="filter-input" type="number" id="t-pts" placeholder="e.g. 15" min="0" max="60">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Min Rebounds</label>
+          <input class="filter-input" type="number" id="t-reb" placeholder="e.g. 8" min="0" max="30">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Min Assists</label>
+          <input class="filter-input" type="number" id="t-ast" placeholder="e.g. 5" min="0" max="20">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Min Steals</label>
+          <input class="filter-input" type="number" id="t-stl" placeholder="e.g. 2" min="0" max="10">
+        </div>
+      </div>
+
+      <div class="filter-section-label">Game range</div>
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label class="filter-label">From game #</label>
+          <input class="filter-input" type="number" id="t-game-from" placeholder="1" min="1" max="35">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">To game #</label>
+          <input class="filter-input" type="number" id="t-game-to" placeholder="35" min="1" max="35">
+        </div>
+        <div class="filter-group" style="grid-column: span 3;">
+          <label class="filter-label" style="opacity:0.5;">Game reference: game IDs reflect each player's actual schedule. Transfers show games from their prior school.</label>
+        </div>
+      </div>
+
+      <div class="filter-section-label">Search by opponent</div>
+      <div class="filter-grid">
+        <div class="filter-group" style="grid-column: span 3;">
+          <label class="filter-label">Opponent name (partial match)</label>
+          <input class="filter-input" type="text" id="f-opp-search" placeholder="e.g. Texas, Duke, South Carolina…">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="run-btn" onclick="runQuery()">Search ↗</button>
+        <button class="csv-btn" id="csv-btn" onclick="exportCSV()">↓ Export CSV</button>
+      </div>
+      <p class="data-note">All game-by-game stats verified from ESPN official box scores for the 2025–26 season.</p>
+    </div>
+
+    <div class="results-wrap" id="results-wrap">
+      <div class="summary-banner">
+        <div>
+          <div class="sb-main" id="summary-main">Results</div>
+          <div class="sb-sub" id="summary-sub"></div>
+        </div>
+        <div class="stat-summary-row" id="stat-pills"></div>
+      </div>
+
+      <!-- Dynamic chart -->
+      <div class="glass-card" style="margin-bottom:1.25rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <div id="chart-title" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;"></div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="setChartType('bar')"  id="ct-bar"  class="chart-type-btn active">Bar</button>
+            <button onclick="setChartType('line')" id="ct-line" class="chart-type-btn">Line</button>
+          </div>
+        </div>
+        <div style="position:relative;width:100%;height:260px;">
+          <canvas id="explorerChart"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card" style="overflow-x:auto;">
+        <table class="results-table" id="results-table">
+          <thead><tr id="table-head"></tr></thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/players.js"></script>
+<script src="js/gamelog.js"></script>
+<script>
+const COLORS = ['var(--gold)','#9b59ff','#1D9E75','#D85A30'];
+const PLAYER_OPTIONS = [
+  { num:'4',  name:"Flau'jae Johnson" },
+  { num:'12', name:"Mikaylah Williams" },
+  { num:'23', name:"MiLaysia Fulwiley" },
+  { num:'30', name:"Jada Richard" },
+  { num:'1',  name:"Amiya Joyner" },
+  { num:'11', name:"ZaKiyah Johnson" },
+  { num:'13', name:"Kate Koval" },
+  { num:'2',  name:"Grace Knox" },
+  { num:'3',  name:"Bella Hines" },
+  { num:'6',  name:"Divine Bourrage" },
+  { num:'15', name:"Meghan Yarnevich" },
+  // Incoming transfers — stats from 2025-26 at prior school (estimated game log)
+  { num:'10', name:"Jada Williams (transfer)" },
+  { num:'20', name:"Laila Reynolds (transfer)" },
+  { num:'21', name:"Chloe Larry (transfer)" },
+  { num:'22', name:"Noa Morro (transfer)" },
+];
+
+
+let explorerChart = null;
+let currentChartType = 'bar';
+let lastChartData = null;
+
+function setChartType(type) {
+  currentChartType = type;
+  document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('ct-' + type).classList.add('active');
+  if (lastChartData) renderExplorerChart(lastChartData.rows, lastChartData.stat);
+}
+
+function renderExplorerChart(rows, stat) {
+  lastChartData = { rows, stat };
+  const ctx = document.getElementById('explorerChart');
+  if (!ctx) return;
+  if (explorerChart) { explorerChart.destroy(); explorerChart = null; }
+
+  const multi = playerSlots.length > 1;
+  const statLabels = { pts:'Points', reb:'Rebounds', ast:'Assists', stl:'Steals', blk:'Blocks', tov:'Turnovers', mins:'Minutes' };
+  const statLabel = statLabels[stat] || stat.toUpperCase();
+
+  // Sort chronologically for display
+  const sorted = [...rows].sort((a,b) => a.id - b.id);
+
+  let datasets;
+  if (multi) {
+    // One dataset per player
+    datasets = playerSlots.map((slot, i) => {
+      const playerRows = sorted.filter(r => String(r.playerNum) === slot.num);
+      return {
+        label: getPlayerName(slot.num).split(' ').slice(-1)[0],
+        data: playerRows.map(r => ({ x: r.date + ' vs ' + r.opp.replace(/\(.*?\)\s*/,'').substring(0,12), y: r[stat] ?? 0 })),
+        backgroundColor: COLORS[i] + (currentChartType === 'bar' ? 'cc' : '33'),
+        borderColor: COLORS[i],
+        borderWidth: currentChartType === 'line' ? 2 : 0,
+        pointRadius: currentChartType === 'line' ? 4 : 0,
+        pointBackgroundColor: COLORS[i],
+        fill: false,
+        tension: 0.3,
+        borderRadius: currentChartType === 'bar' ? 4 : 0,
+      };
+    });
+  } else {
+    // Single player — color bars by W/L
+    datasets = [{
+      label: statLabel,
+      data: sorted.map(r => r[stat] ?? 0),
+      backgroundColor: sorted.map(r => r.result === 'W' ? 'var(--gold)cc' : '#D85A30cc'),
+      borderColor: sorted.map(r => r.result === 'W' ? 'var(--gold)' : '#D85A30'),
+      borderWidth: currentChartType === 'line' ? 2 : 0,
+      borderRadius: currentChartType === 'bar' ? 4 : 0,
+      pointRadius: currentChartType === 'line' ? 4 : 0,
+      tension: 0.3,
+      fill: false,
+    }];
+  }
+
+  const labels = multi
+    ? playerSlots[0] && sorted.filter(r => String(r.playerNum) === playerSlots[0].num).map(r => r.date)
+    : sorted.map(r => r.date);
+
+  document.getElementById('chart-title').textContent =
+    statLabel + ' per game' + (multi ? ' — by player' : ' — W=gold  L=red') + '  ·  ' + rows.length + ' games';
+
+  explorerChart = new Chart(ctx, {
+    type: currentChartType,
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: multi,
+          labels: { color: 'rgba(240,234,248,0.5)', font: { family: 'DM Mono', size: 10 }, boxWidth: 12, padding: 16 }
+        },
+        tooltip: {
+          backgroundColor: '#1a0035', titleColor: 'var(--gold)',
+          bodyColor: 'rgba(240,234,248,0.8)', borderColor: 'rgba(240,234,248,0.1)', borderWidth: 1,
+          callbacks: {
+            title: (items) => {
+              const idx = items[0].dataIndex;
+              const r = sorted.filter(g => !multi || String(g.playerNum) === playerSlots[items[0].datasetIndex]?.num)[idx];
+              return r ? `${r.date} vs ${r.opp}` : items[0].label;
+            },
+            label: (item) => {
+              const idx = item.dataIndex;
+              const playerRows = multi
+                ? sorted.filter(g => String(g.playerNum) === playerSlots[item.datasetIndex]?.num)
+                : sorted;
+              const r = playerRows[idx];
+              if (!r) return `${statLabel}: ${item.raw}`;
+              return ` ${statLabel}: ${item.raw}  |  ${r.result} ${r.score}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: 'rgba(240,234,248,0.35)', font: { family: 'DM Mono', size: 9 }, maxRotation: 45, maxTicksLimit: 18 },
+          grid: { color: 'rgba(240,234,248,0.04)' }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: 'rgba(240,234,248,0.35)', font: { family: 'DM Mono', size: 10 } },
+          grid: { color: 'rgba(240,234,248,0.05)' }
+        }
+      }
+    }
+  });
+}
+
+let playerSlots = [{ num:'4', id:0 }];
+let slotCounter = 1;
+let currentRows = [];
+let currentSort = { col:'date', dir:'asc' };
+
+function renderSlots() {
+  const container = document.getElementById('player-slots');
+  container.innerHTML = playerSlots.map((slot, i) => `
+    <div class="player-slot">
+      <div class="slot-color" style="background:${COLORS[i % 4]}"></div>
+      <select onchange="updateSlot(${slot.id}, this.value)">
+        ${PLAYER_OPTIONS.map(p => `<option value="${p.num}" ${p.num === slot.num ? 'selected' : ''}>${p.name}</option>`).join('')}
+      </select>
+      ${playerSlots.length > 1
+        ? `<button class="slot-remove" onclick="removeSlot(${slot.id})">×</button>`
+        : '<div style="width:28px"></div>'}
+    </div>`).join('');
+  const btn = document.getElementById('add-player-btn');
+  if (playerSlots.length >= 4) btn.setAttribute('disabled','true');
+  else btn.removeAttribute('disabled');
+}
+
+function removeSlot(id) {
+  if (playerSlots.length <= 1) return;
+  playerSlots = playerSlots.filter(s => s.id !== id);
+  renderSlots();
+}
+
+function updateSlot(id, num) {
+  const slot = playerSlots.find(s => s.id === id);
+  if (slot) slot.num = num;
+}
+
+function getPlayerName(num) {
+  return PLAYER_OPTIONS.find(p => p.num === String(num))?.name || `#${num}`;
+}
+
+function getPlayerColorIdx(num) {
+  return playerSlots.findIndex(s => s.num === String(num));
+}
+
+function runQuery() {
+  const stat     = document.getElementById('f-stat').value;
+  const type     = document.getElementById('f-type').value;
+  const result   = document.getElementById('f-result').value;
+  const loc      = document.getElementById('f-loc').value;
+  const strength = document.getElementById('f-strength').value;
+  const tPts     = parseInt(document.getElementById('t-pts').value)       || 0;
+  const tReb     = parseInt(document.getElementById('t-reb').value)       || 0;
+  const tAst     = parseInt(document.getElementById('t-ast').value)       || 0;
+  const tStl     = parseInt(document.getElementById('t-stl').value)       || 0;
+  const gameFrom = parseInt(document.getElementById('t-game-from').value) || 1;
+  const gameTo   = parseInt(document.getElementById('t-game-to').value)   || 35;
+
+  const nums = playerSlots.map(s => s.num);
+  let rows = GAME_LOG.filter(g => nums.includes(String(g.playerNum)) && g.pts !== null && g.pts !== undefined);
+
+  if (type === 'sec')     rows = rows.filter(g => g.type !== 'Nonconf' && g.type !== 'NCAA');
+  if (type === 'nonconf') rows = rows.filter(g => g.type === 'Nonconf');
+  if (type === 'ncaa')    rows = rows.filter(g => g.type === 'NCAA');
+  if (result !== 'all')   rows = rows.filter(g => g.result === result);
+  if (loc === 'home')     rows = rows.filter(g => g.loc === 'home');
+  if (loc === 'away')     rows = rows.filter(g => g.loc === 'away');
+  if (loc === 'neutral')  rows = rows.filter(g => g.loc === 'neutral');
+  if (strength === 'ranked')   rows = rows.filter(g => g.ranked);
+  if (strength === 'over500')  rows = rows.filter(g => g.oppRecord >= 0.5);
+  if (strength === 'under500') rows = rows.filter(g => g.oppRecord < 0.5);
+
+  // Opponent name search
+  const oppSearch = document.getElementById('f-opp-search').value.trim().toLowerCase();
+  if (oppSearch) rows = rows.filter(g => g.opp.toLowerCase().includes(oppSearch));
+  if (tPts > 0) rows = rows.filter(g => (g.pts || 0) >= tPts);
+  if (tReb > 0) rows = rows.filter(g => (g.reb || 0) >= tReb);
+  if (tAst > 0) rows = rows.filter(g => (g.ast || 0) >= tAst);
+  if (tStl > 0) rows = rows.filter(g => (g.stl || 0) >= tStl);
+  rows = rows.filter(g => g.id >= gameFrom && g.id <= gameTo);
+
+  currentRows = rows;
+  currentSort = { col: stat, dir: 'desc' };
+  renderResults(rows, stat);
+}
+
+function sortBy(col) {
+  currentSort.dir = currentSort.col === col ? (currentSort.dir === 'asc' ? 'desc' : 'asc') : 'desc';
+  currentSort.col = col;
+  renderResults(currentRows, document.getElementById('f-stat').value);
+}
+
+function renderResults(rows, highlightStat) {
+  const wrap = document.getElementById('results-wrap');
+  const csvBtn = document.getElementById('csv-btn');
+  const multi = playerSlots.length > 1;
+
+  if (!rows.length) {
+    wrap.classList.add('visible');
+    csvBtn.classList.remove('visible');
+    document.getElementById('table-head').innerHTML = '';
+    document.getElementById('results-body').innerHTML = `<tr><td colspan="14" class="no-results">No games match these filters.</td></tr>`;
+    document.getElementById('summary-main').innerHTML = 'No results found';
+    document.getElementById('summary-sub').textContent = 'Try adjusting your filters';
+    document.getElementById('stat-pills').innerHTML = '';
+    return;
+  }
+
+  const sorted = [...rows].sort((a,b) => {
+    let av = a[currentSort.col] ?? -1, bv = b[currentSort.col] ?? -1;
+    if (typeof av === 'string') { av = av.toLowerCase(); bv = (bv||'').toLowerCase(); }
+    if (av < bv) return currentSort.dir === 'asc' ? -1 : 1;
+    if (av > bv) return currentSort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const avg = k => (rows.reduce((s,r) => s + (r[k]||0), 0) / rows.length).toFixed(1);
+  const maxVal = Math.max(...rows.map(r => r[highlightStat]||0));
+  const pLabel = multi ? `${playerSlots.length} players` : getPlayerName(playerSlots[0].num);
+
+  document.getElementById('summary-main').innerHTML = `<span>${rows.length}</span> game${rows.length !== 1 ? 's' : ''} — ${pLabel}`;
+  document.getElementById('summary-sub').textContent = `Sorted by ${currentSort.col.toUpperCase()} ${currentSort.dir === 'desc' ? '↓' : '↑'} · Click any column header to re-sort`;
+  document.getElementById('stat-pills').innerHTML = [
+    { l:`Avg ${highlightStat.toUpperCase()}`, v: avg(highlightStat) },
+    { l:`Max ${highlightStat.toUpperCase()}`, v: maxVal },
+    { l:'Avg PTS', v: avg('pts') },
+    { l:'Avg REB', v: avg('reb') },
+    { l:'Avg AST', v: avg('ast') },
+    { l:'Wins',    v: rows.filter(r => r.result === 'W').length },
+  ].map(p => `<div class="ss-pill"><div class="ss-pill-val">${p.v}</div><div class="ss-pill-label">${p.l}</div></div>`).join('');
+
+  // Header
+  const baseCols  = ['date','opp','type','loc','result','pts','reb','ast','stl','blk','tov','fgm','mins'];
+  const baseLabels = ['Date','Opponent','Type','Loc','Result','PTS','REB','AST','STL','BLK','TOV','FG','MIN'];
+  const cols   = multi ? ['player', ...baseCols]   : baseCols;
+  const labels = multi ? ['Player', ...baseLabels] : baseLabels;
+
+  document.getElementById('table-head').innerHTML = labels.map((l, i) => {
+    const key = cols[i];
+    const cls = currentSort.col === key ? `sort-${currentSort.dir}` : '';
+    return `<th class="${cls}" onclick="sortBy('${key}')">${l}</th>`;
+  }).join('');
+
+  // Rows
+  document.getElementById('results-body').innerHTML = sorted.map(g => {
+    const isHi = (g[highlightStat]||0) === maxVal && maxVal > 0;
+    const colorIdx = getPlayerColorIdx(g.playerNum);
+    const color = COLORS[colorIdx >= 0 ? colorIdx : 0];
+    const sc = (k) => `<td class="${isHi && k === highlightStat ? 'td-stat-hi' : 'td-stat'}">${g[k] ?? '—'}</td>`;
+    const typeColor = (g.type !== 'Nonconf' && g.type !== 'NCAA') ? 'rgba(253,208,35,0.7)' : g.type === 'NCAA' ? '#9b59ff' : 'rgba(240,234,248,0.3)';
+    return `<tr>
+      ${multi ? `<td class="td-player"><span class="p-dot" style="background:${color}"></span>${getPlayerName(g.playerNum)}</td>` : ''}
+      <td class="td-date">${g.date}</td>
+      <td class="td-opp">${g.opp}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:10px;color:${typeColor}">${g.type}</td>
+      <td class="td-home">${g.locLabel}</td>
+      <td class="${g.result === 'W' ? 'td-w' : 'td-l'}">${g.result} ${g.score}</td>
+      ${sc('pts')}${sc('reb')}${sc('ast')}${sc('stl')}${sc('blk')}${sc('tov')}
+      <td class="td-stat">${g.fgm ?? '—'}/${g.fga ?? '—'}</td>
+      <td class="td-stat">${g.mins ?? '—'}</td>
+    </tr>`;
+  }).join('');
+
+  renderExplorerChart(rows, highlightStat);
+  wrap.classList.add('visible');
+  csvBtn.classList.add('visible');
+}
+
+function exportCSV() {
+  if (!currentRows.length) return;
+  const multi = playerSlots.length > 1;
+  const headers = multi
+    ? ['Player','Date','Opponent','Type','Location','Result','Score','PTS','REB','AST','STL','BLK','TOV','FGM','FGA','MIN']
+    : ['Date','Opponent','Type','Location','Result','Score','PTS','REB','AST','STL','BLK','TOV','FGM','FGA','MIN'];
+
+  const sorted = [...currentRows].sort((a,b) => {
+    let av = a[currentSort.col] ?? -1, bv = b[currentSort.col] ?? -1;
+    if (typeof av === 'string') { av = av.toLowerCase(); bv = (bv||'').toLowerCase(); }
+    if (av < bv) return currentSort.dir === 'asc' ? -1 : 1;
+    if (av > bv) return currentSort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const lines = [headers.join(',')];
+  sorted.forEach(g => {
+    const row = multi ? [`"${getPlayerName(g.playerNum)}"`] : [];
+    row.push(g.date, `"${g.opp}"`, g.type, g.locLabel, g.result, g.score,
+      g.pts ?? '', g.reb ?? '', g.ast ?? '', g.stl ?? '', g.blk ?? '', g.tov ?? '',
+      g.fgm ?? '', g.fga ?? '', g.mins ?? '');
+    lines.push(row.join(','));
+  });
+
+  const names = playerSlots.map(s => getPlayerName(s.num).split(' ').slice(-1)[0]).join('-');
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `LSU_${names}_GameLog.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Init
+renderSlots();
+setTimeout(runQuery, 100);
+</script>
+<script>
+function toggleNav() {
+  const links = document.getElementById('topnav-links');
+  const btn   = document.getElementById('nav-hamburger');
+  links.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+// Close nav when a link is clicked (mobile)
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

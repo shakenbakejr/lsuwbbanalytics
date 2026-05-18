@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Analytics · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+
+/* ── Efficiency Score ────────────────────────── */
+.formula-box {
+  background: rgba(253,208,35,0.04);
+  border: 0.5px solid rgba(253,208,35,0.18);
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin-bottom: 1.5rem;
+}
+.formula-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--gold);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  margin-bottom: 10px;
+}
+.formula-eq {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px; color: rgba(240,234,248,0.8);
+  line-height: 1.9; margin-bottom: 10px;
+}
+.formula-eq span { color: var(--gold); }
+.formula-note {
+  font-size: 12px; color: rgba(255,255,255,0.35);
+  line-height: 1.6; font-weight: 300;
+}
+
+.eff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 12px; margin-bottom: 2rem;
+}
+.eff-card {
+  background: rgba(255,255,255,0.02);
+  border: 0.5px solid rgba(240,234,248,0.08);
+  border-radius: 10px; padding: 14px 16px;
+  transition: all 0.15s;
+}
+.eff-card:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+.eff-name { font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 2px; }
+.eff-pos  { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(240,234,248,0.3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.eff-score-row { display: flex; align-items: center; gap: 10px; }
+.eff-num  { font-family: 'Oswald', sans-serif; font-size: 34px; line-height: 1; color: var(--gold); }
+.eff-bar-wrap { flex: 1; }
+.eff-bar-track { height: 4px; background: rgba(240,234,248,0.07); border-radius: 10px; overflow: hidden; }
+.eff-bar-fill  { height: 100%; border-radius: 10px; background: linear-gradient(90deg,var(--purple),var(--gold)); transition: width 0.8s ease; }
+
+/* ── Usage vs Efficiency ─────────────────────── */
+.quadrant-wrap { position: relative; width: 100%; height: 400px; }
+
+/* ── Momentum Tracker ───────────────────────── */
+.momentum-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.momentum-table th {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: rgba(255,255,255,0.35); text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 10px 14px;
+  text-align: left; border-bottom: 0.5px solid rgba(240,234,248,0.08);
+  white-space: nowrap;
+}
+.momentum-table td {
+  padding: 11px 14px;
+  border-bottom: 0.5px solid rgba(240,234,248,0.07);
+  vertical-align: middle;
+}
+.momentum-table tr:last-child td { border: none; }
+.momentum-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.m-name  { font-weight: 500; color: #fff; white-space: nowrap; }
+.m-pos   { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(240,234,248,0.3); margin-top: 2px; }
+.m-val   { font-family: 'DM Mono', monospace; font-size: 13px; color: rgba(240,234,248,0.7); }
+.m-phase-cell { display: flex; align-items: center; gap: 7px; }
+.m-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.m-up    { color: #1D9E75; font-weight: 500; }
+.m-down  { color: #D85A30; font-weight: 500; }
+.m-flat  { color: rgba(240,234,248,0.4); }
+.m-arrow { font-size: 16px; }
+
+.phase-legend {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.phase-legend-item {
+  display: flex; align-items: center; gap: 7px;
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: rgba(240,234,248,0.4); text-transform: uppercase; letter-spacing: 0.08em;
+}
+.pleg-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.section-block  { margin-bottom: 3rem; }
+.section-intro  { font-size: 13px; color: rgba(240,234,248,0.42); line-height: 1.7; margin-bottom: 1.25rem; font-weight: 300; max-width: 660px; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+  <div class="topnav-links">
+    <a href="players.html">Players</a>
+    <a href="team.html">Team</a>
+    <a href="analytics.html" class="active">Analytics</a>
+    <a href="schedule.html">Schedule</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+
+    <div class="page-header">
+      <div class="page-eyebrow">Data Analysis</div>
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-subtitle">2025–26 season · Efficiency scores · Usage curves · Momentum tracking</p>
+    </div>
+
+    <!-- ── 1. EFFICIENCY SCORE ─────────────────── -->
+    <div class="section-block">
+      <div class="section-label">01 — Efficiency score</div>
+      <p class="section-intro">A single 0–100 composite score for every player that captures overall contribution beyond just points. Higher = more valuable to the team. Sorted from highest to lowest.</p>
+
+      <div class="formula-box">
+        <div class="formula-title">How it's calculated</div>
+        <div class="formula-eq">
+          Score = <span>(PPG × 1.0)</span> + <span>(RPG × 0.7)</span> + <span>(APG × 0.8)</span> + <span>(SPG × 1.2)</span> + <span>(BPG × 1.0)</span> − <span>(TPG × 0.8)</span> + <span>FG% bonus</span>
+        </div>
+        <div class="formula-note">
+          Weights reflect LSU's system priorities — steals are valued highest (1.2×) because Mulkey's pressure defense turns steals directly into points. Assists (0.8×) and rebounds (0.7×) reflect their supporting role. Turnovers are penalized (−0.8×). The FG% bonus rewards efficiency: every percentage point above 40% adds a small bonus. The raw result is normalized to a 0–100 scale based on realistic production ranges for this roster.
+        </div>
+      </div>
+
+      <div class="eff-grid" id="eff-grid"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ── 2. USAGE vs EFFICIENCY ──────────────── -->
+    <div class="section-block">
+      <div class="section-label">02 — Usage vs. efficiency</div>
+      <p class="section-intro">Every player plotted by minutes per game (how much they're used) against their efficiency score (how well they produce). The quadrants reveal where each player stands relative to their role on the team.</p>
+      <div class="glass-card">
+        <div class="quadrant-wrap">
+          <canvas id="scatterChart" role="img" aria-label="Scatter chart of player usage vs efficiency">Usage vs efficiency scatter plot.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ── 3. MOMENTUM TRACKER ─────────────────── -->
+    <div class="section-block">
+      <div class="section-label">03 — Momentum tracker</div>
+      <p class="section-intro">The season is split into three phases. Each number is that player's points per game average during that stretch. The dot color tells you whether they went up (green), down (red), or held steady (gray) compared to the previous phase. The final column shows their overall trajectory across the full season.</p>
+
+      <div class="phase-legend">
+        <div class="phase-legend-item"><div class="pleg-dot" style=""></div>Phase 1: Non-conference (Nov–Dec, games 1–16)</div>
+        <div class="phase-legend-item"><div class="pleg-dot" style="background:#378ADD;"></div>Phase 2: SEC first half (Jan–early Feb, games 17–24)</div>
+        <div class="phase-legend-item"><div class="pleg-dot" style="background:var(--gold);"></div>Phase 3: SEC second half + tournament (late Feb–Mar, games 25–35)</div>
+      </div>
+
+      <div class="phase-legend" style="margin-bottom:1rem;">
+        <div class="phase-legend-item"><div class="pleg-dot" style="background:#1D9E75;"></div>Green dot = scoring went up vs. previous phase</div>
+        <div class="phase-legend-item"><div class="pleg-dot" style="background:#D85A30;"></div>Red dot = scoring went down vs. previous phase</div>
+        <div class="phase-legend-item"><div class="pleg-dot" style="background:rgba(255,255,255,0.25);"></div>Gray dot = within 1.0 ppg — held steady</div>
+      </div>
+
+      <div class="glass-card" style="overflow-x:auto;">
+        <table class="momentum-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Pos</th>
+              <th style="color:rgba(59,31,106,0.9);">Phase 1 PPG<br/><span style="font-size:9px;opacity:0.6;">Non-conf</span></th>
+              <th style="color:#378ADD;">Phase 2 PPG<br/><span style="font-size:9px;opacity:0.6;">SEC 1st half</span></th>
+              <th style="color:var(--gold);">Phase 3 PPG<br/><span style="font-size:9px;opacity:0.6;">SEC 2nd + tourney</span></th>
+              <th>Total Δ</th>
+              <th>Trajectory</th>
+            </tr>
+          </thead>
+          <tbody id="momentum-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/players.js"></script>
+<script>
+if (document.readyState !== "loading") buildAnalytics();
+else document.addEventListener("DOMContentLoaded", buildAnalytics);
+
+function buildAnalytics() {
+  if (typeof PLAYERS === "undefined") { setTimeout(buildAnalytics, 50); return; }
+  // Confirmed 2025-26 roster only — 12 players who played meaningful minutes
+  // Sa'Myah Smith (#25) was NOT on 2025-26 roster — transferred before this season
+  const roster = PLAYERS.filter(p => p.gp >= 18);
+  buildEfficiency(roster);
+  buildScatter(roster);
+  buildMomentum(roster);
+}
+
+// ── Efficiency Score ──────────────────────────
+function buildEfficiency(roster) {
+  const sorted = [...roster].sort((a, b) => calcEfficiency(b) - calcEfficiency(a));
+  document.getElementById("eff-grid").innerHTML = sorted.map(p => {
+    const score = calcEfficiency(p);
+    return `<div class="eff-card">
+      <div class="eff-name">${p.name.split(' ')[0]} ${p.name.split(' ').slice(-1)[0]}</div>
+      <div class="eff-pos">#${p.num} · ${p.pos}</div>
+      <div class="eff-score-row">
+        <div class="eff-num">${score}</div>
+        <div class="eff-bar-wrap">
+          <div class="eff-bar-track">
+            <div class="eff-bar-fill" style="width:${score}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── Usage vs Efficiency Scatter ───────────────
+function buildScatter(roster) {
+  const COLORS = ["var(--gold)","#1D9E75","#9b59ff","#378ADD","#D85A30","var(--gold)","#1D9E75","#9b59ff","#378ADD","#D85A30","var(--gold)","#1D9E75"];
+  const pts = roster.map((p, i) => ({ x: p.mpg, y: calcEfficiency(p), name: p.name.split(' ')[0] + " " + p.name.split(' ').slice(-1)[0], color: COLORS[i % COLORS.length], full: p }));
+
+  new Chart(document.getElementById("scatterChart"), {
+    type: "scatter",
+    data: {
+      datasets: [{
+        data: pts.map(d => ({ x: d.x, y: d.y })),
+        backgroundColor: pts.map(d => d.color + "bb"),
+        borderColor:     pts.map(d => d.color),
+        borderWidth: 1.5,
+        pointRadius: 9,
+        pointHoverRadius: 12,
+        label: "Players"
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const p = roster[ctx.dataIndex];
+              return ` ${p.name}  |  Efficiency: ${calcEfficiency(p)}  ·  MPG: ${p.mpg}`;
+            }
+          },
+          backgroundColor: "#1a0035", titleColor: "var(--gold)",
+          bodyColor: "rgba(240,234,248,0.8)", borderColor: "rgba(240,234,248,0.1)", borderWidth: 1
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: "Minutes Per Game (Usage)", color: "rgba(240,234,248,0.3)", font: { family: "DM Mono", size: 10 } },
+          min: 0, max: 32,
+          grid: { color: "rgba(240,234,248,0.07)" },
+          ticks: { color: "rgba(240,234,248,0.3)", font: { family: "DM Mono", size: 10 } }
+        },
+        y: {
+          title: { display: true, text: "Efficiency Score (0–100)", color: "rgba(240,234,248,0.3)", font: { family: "DM Mono", size: 10 } },
+          min: 0, max: 100,
+          grid: { color: "rgba(240,234,248,0.07)" },
+          ticks: { color: "rgba(240,234,248,0.3)", font: { family: "DM Mono", size: 10 } }
+        }
+      }
+    },
+    plugins: [{
+      id: "labelsAndQuadrants",
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        const { top, bottom, left, right } = chart.chartArea;
+        const xMid = chart.scales.x.getPixelForValue(16);
+        const yMid = chart.scales.y.getPixelForValue(50);
+
+        // Quadrant dividers
+        ctx.save();
+        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = "rgba(240,234,248,0.08)";
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(xMid, top); ctx.lineTo(xMid, bottom); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(left, yMid); ctx.lineTo(right, yMid); ctx.stroke();
+        ctx.restore();
+
+        // Quadrant labels
+        ctx.save();
+        ctx.font = "500 9px 'DM Mono'";
+        ctx.fillStyle = "rgba(253,208,35,0.4)";   ctx.fillText("⬤  STARS",          right - 52, top + 16);
+        ctx.fillStyle = "rgba(29,158,117,0.5)";    ctx.fillText("HIDDEN GEMS  ⬤",    left + 6,  top + 16);
+        ctx.fillStyle = "rgba(216,90,48,0.4)";     ctx.fillText("⬤  OVEREXTENDED?",  right - 90, bottom - 10);
+        ctx.fillStyle = "rgba(255,255,255,0.18)";  ctx.fillText("DEPTH",              left + 6,  bottom - 10);
+        ctx.restore();
+
+        // Player name labels
+        chart.data.datasets[0].data.forEach((point, i) => {
+          const meta = chart.getDatasetMeta(0);
+          const el = meta.data[i];
+          if (!el) return;
+          const p = roster[i];
+          const firstName = p.name.split(' ')[0];
+          ctx.save();
+          ctx.font = "400 10px 'DM Mono'";
+          ctx.fillStyle = "rgba(240,234,248,0.7)";
+          ctx.textAlign = "center";
+          ctx.fillText(firstName, el.x, el.y - 15);
+          ctx.restore();
+        });
+      }
+    }]
+  });
+}
+
+// ── Momentum Tracker ──────────────────────────
+function buildMomentum(roster) {
+  // Only show players with meaningful minutes (13+ MPG)
+  const sig = roster.filter(p => p.mpg >= 13);
+
+  // Sort by biggest positive trajectory first
+  const sorted = [...sig].sort((a, b) => {
+    const deltaA = a.phases.ppg[2] - a.phases.ppg[0];
+    const deltaB = b.phases.ppg[2] - b.phases.ppg[0];
+    return deltaB - deltaA;
+  });
+
+  document.getElementById("momentum-body").innerHTML = sorted.map(p => {
+    const [ph1, ph2, ph3] = p.phases.ppg;
+    const totalDelta = ph3 - ph1;
+
+    // dot color: compare each phase to the previous
+    const dot2Color = ph2 - ph1 >=  1.0 ? "#1D9E75" : ph2 - ph1 <= -1.0 ? "#D85A30" : "rgba(255,255,255,0.25)";
+    const dot3Color = ph3 - ph2 >=  1.0 ? "#1D9E75" : ph3 - ph2 <= -1.0 ? "#D85A30" : "rgba(255,255,255,0.25)";
+
+    let trajCls, trajText, trajArrow;
+    if (totalDelta >= 1.5)       { trajCls = "m-up";   trajText = "Rising";   trajArrow = "↑"; }
+    else if (totalDelta <= -1.5) { trajCls = "m-down";  trajText = "Fading";   trajArrow = "↓"; }
+    else                          { trajCls = "m-flat";  trajText = "Steady";   trajArrow = "→"; }
+
+    return `<tr>
+      <td>
+        <div class="m-name">${p.name.split(' ')[0]} ${p.name.split(' ').slice(-1)[0]}</div>
+        <div class="m-pos">#${p.num} · ${p.pos}</div>
+      </td>
+      <td><span class="badge badge-white">${p.year}</span></td>
+      <td><span class="m-val">${ph1.toFixed(1)} ppg</span></td>
+      <td>
+        <div class="m-phase-cell">
+          <div class="m-dot" style="background:${dot2Color};" title="${ph2 > ph1 ? 'Up' : ph2 < ph1 ? 'Down' : 'Steady'} vs Phase 1"></div>
+          <span class="m-val">${ph2.toFixed(1)} ppg</span>
+        </div>
+      </td>
+      <td>
+        <div class="m-phase-cell">
+          <div class="m-dot" style="background:${dot3Color};" title="${ph3 > ph2 ? 'Up' : ph3 < ph2 ? 'Down' : 'Steady'} vs Phase 2"></div>
+          <span class="m-val">${ph3.toFixed(1)} ppg</span>
+        </div>
+      </td>
+      <td class="${trajCls}" style="font-family:'DM Mono',monospace;font-size:12px;">
+        ${totalDelta >= 0 ? "+" : ""}${totalDelta.toFixed(1)} ppg
+      </td>
+      <td class="${trajCls}" style="font-weight:500;">
+        <span class="m-arrow">${trajArrow}</span> ${trajText}
+      </td>
+    </tr>`;
+  }).join("");
+}
+</script>
+</body>
+</html>

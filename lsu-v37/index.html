@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LSU Tigers · Women's Basketball Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 6vw;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Rich LSU purple gradient background */
+.hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 120% 80% at 30% 60%, #2E1858 0%, #1C0A3A 55%, #0F0525 100%);
+  z-index: 0;
+}
+
+/* Subtle grid overlay */
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(253,208,35,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(253,208,35,0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+  z-index: 1;
+}
+
+/* Atmospheric glow */
+.hero-glow {
+  position: absolute;
+  width: 700px; height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(70,29,124,0.55) 0%, transparent 68%);
+  top: -140px; right: -80px;
+  z-index: 1;
+}
+.hero-glow-2 {
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(253,208,35,0.08) 0%, transparent 70%);
+  bottom: 5%; left: 20%;
+  z-index: 1;
+}
+
+/* Tiger image */
+.hero-tiger {
+  position: absolute;
+  right: -3%;
+  top: 0; bottom: 0;
+  width: 56%;
+  z-index: 2;
+  pointer-events: none;
+}
+.hero-tiger img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 30% center;
+  display: block;
+  filter: brightness(0.88) contrast(1.08) saturate(1.15) sepia(0.08) hue-rotate(-5deg);
+}
+.hero-tiger::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to right,
+    #1C0A3A 0%,
+    rgba(28,10,58,0.93) 13%,
+    rgba(28,10,58,0.55) 30%,
+    rgba(28,10,58,0.15) 50%,
+    transparent 70%
+  );
+  z-index: 3;
+}
+.hero-tiger::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(28,10,58,0.72) 0%,
+    transparent 18%,
+    transparent 72%,
+    rgba(28,10,58,0.9) 100%
+  );
+  z-index: 3;
+}
+.tiger-glow {
+  position: absolute;
+  right: 17%; top: 50%;
+  transform: translateY(-50%);
+  width: 460px; height: 500px;
+  background: radial-gradient(ellipse, rgba(253,208,35,0.1) 0%, transparent 62%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) { .hero-tiger { width: 50%; opacity: 0.6; } }
+@media (max-width: 600px) { .hero-tiger { display: none; } }
+
+/* Content */
+.hero-content {
+  position: relative; z-index: 4;
+  max-width: 52%;
+}
+@media (max-width: 900px) { .hero-content { max-width: 68%; } }
+@media (max-width: 600px) { .hero-content { max-width: 100%; } }
+
+.hero-eyebrow {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.eyebrow-line { width: 28px; height: 2px; background: var(--gold); border-radius: 1px; }
+.eyebrow-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; color: var(--gold);
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+
+.hero-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(60px, 10vw, 116px);
+  font-weight: 700;
+  line-height: 0.95;
+  color: var(--white);
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.04em;
+}
+.hero-title span { color: var(--gold); }
+
+.hero-subtitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: var(--gray-2);
+  max-width: 440px;
+  line-height: 1.65;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+}
+
+/* Nav cards */
+.nav-cards {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+
+.nav-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 20px;
+  background: rgba(240,234,248,0.05);
+  border: 1px solid rgba(240,234,248,0.10);
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+  min-width: 0;
+}
+.nav-card:hover {
+  background: rgba(70,29,124,0.4);
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.nav-card-num {
+  font-family: 'Oswald', sans-serif;
+  font-size: 24px; font-weight: 700;
+  color: rgba(253,208,35,0.25);
+  line-height: 1; min-width: 28px;
+  transition: color 0.2s;
+}
+.nav-card:hover .nav-card-num { color: var(--gold); }
+.nav-card-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600;
+  color: var(--white); line-height: 1; margin-bottom: 3px;
+}
+.nav-card-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: var(--gray-3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+/* Overview strip */
+.overview-label {
+  position: relative; z-index: 4;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: var(--gray-3);
+  text-transform: uppercase; letter-spacing: 0.16em;
+  margin-bottom: 10px;
+}
+
+.overview-strip {
+  position: relative; z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  max-width: 820px;
+}
+
+.ov-card {
+  background: rgba(240,234,248,0.05);
+  border: 1px solid rgba(240,234,248,0.09);
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+.ov-card:hover { border-color: rgba(253,208,35,0.2); }
+.ov-val {
+  font-family: 'Oswald', sans-serif;
+  font-size: 26px; font-weight: 700;
+  color: var(--gold); line-height: 1;
+}
+.ov-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: var(--gray-3);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px;
+}
+.ov-sub {
+  font-size: 11px; color: rgba(240,234,248,0.22);
+  margin-top: 2px; font-weight: 300;
+}
+
+/* Corner stats */
+.hero-stats {
+  position: absolute;
+  right: 5vw; bottom: 8vh;
+  z-index: 4;
+  display: flex; gap: 28px;
+}
+.hstat { text-align: right; }
+.hstat-val {
+  font-family: 'Oswald', sans-serif;
+  font-size: 32px; font-weight: 700;
+  color: var(--gold); line-height: 1;
+}
+.hstat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: var(--gray-3);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 3px;
+}
+@media (max-width: 600px) { .hero-stats { display: none; } }
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+  <div class="tiger-glow"></div>
+  <div class="hero-tiger"><img src="mike.png" alt="Mike the Tiger"/></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <div class="eyebrow-line"></div>
+      <span class="eyebrow-text">LSU Women's Basketball · 2024–25</span>
+    </div>
+    <h1 class="hero-title">LSU<br/><span>Analytics</span></h1>
+    <p class="hero-subtitle">Full-season intelligence dashboard — stats, trends, and breakdowns for the 2024–25 Tigers.</p>
+
+    <div class="nav-cards">
+      <a class="nav-card" href="team.html">
+        <div class="nav-card-num">01</div>
+        <div><div class="nav-card-title">Team Overview</div><div class="nav-card-sub">Season · Records · Trends</div></div>
+      </a>
+      <a class="nav-card" href="players.html">
+        <div class="nav-card-num">02</div>
+        <div><div class="nav-card-title">Player Dashboard</div><div class="nav-card-sub">Stats · Profiles · Roles</div></div>
+      </a>
+      <a class="nav-card" href="analytics-efficiency.html">
+        <div class="nav-card-num">03</div>
+        <div><div class="nav-card-title">Analytics</div><div class="nav-card-sub">Efficiency · Usage · Momentum</div></div>
+      </a>
+      <a class="nav-card" href="guards.html">
+        <div class="nav-card-num">04</div>
+        <div><div class="nav-card-title">Guard Breakdown</div><div class="nav-card-sub">3PT · Assists · Steals</div></div>
+      </a>
+      <a class="nav-card" href="posts.html">
+        <div class="nav-card-num">05</div>
+        <div><div class="nav-card-title">Post Breakdown</div><div class="nav-card-sub">Rebounds · Blocks · Interior</div></div>
+      </a>
+      <a class="nav-card" href="explorer.html">
+        <div class="nav-card-num">06</div>
+        <div><div class="nav-card-title">Stat Explorer</div><div class="nav-card-sub">Filter · Query · Game Logs</div></div>
+      </a>
+      <a class="nav-card" href="game-explorer.html">
+        <div class="nav-card-num">07</div>
+        <div><div class="nav-card-title">Game Explorer</div><div class="nav-card-sub">Quarter · Scores · Filter</div></div>
+      </a>
+      <a class="nav-card" href="schedule.html">
+        <div class="nav-card-num">08</div>
+        <div><div class="nav-card-title">Season Schedule</div><div class="nav-card-sub">Results · Scores · Filters</div></div>
+      </a>
+      <a class="nav-card" href="transfers.html">
+        <div class="nav-card-num">09</div>
+        <div><div class="nav-card-title">Incoming Transfers</div><div class="nav-card-sub">Williams · Reynolds · Larry</div></div>
+      </a>
+      <a class="nav-card" href="roster.html">
+        <div class="nav-card-num">10</div>
+        <div><div class="nav-card-title">Current Roster</div><div class="nav-card-sub">Returning · Transfers · Stats</div></div>
+      </a>
+    </div>
+
+    <div class="overview-label">2024–25 season overview</div>
+    <div class="overview-strip">
+      <div class="ov-card"><div class="ov-val">29–6</div><div class="ov-label">Overall Record</div><div class="ov-sub">Sweet 16 · #8 AP</div></div>
+      <div class="ov-card"><div class="ov-val">95.0</div><div class="ov-label">Points/Game</div><div class="ov-sub">#1 nationally</div></div>
+      <div class="ov-card"><div class="ov-val">61.1</div><div class="ov-label">Opp PPG</div><div class="ov-sub">Top-5 defense</div></div>
+      <div class="ov-card"><div class="ov-val">12–4</div><div class="ov-label">SEC Record</div><div class="ov-sub">4th in conference</div></div>
+      <div class="ov-card"><div class="ov-val">16×</div><div class="ov-label">100-pt Games</div><div class="ov-sub">NCAA record</div></div>
+      <div class="ov-card"><div class="ov-val">+33.9</div><div class="ov-label">Point Margin</div><div class="ov-sub">Avg per game</div></div>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-val">29–6</div><div class="hstat-label">Season record</div></div>
+    <div class="hstat"><div class="hstat-val">95.0</div><div class="hstat-label">PPG (1st)</div></div>
+    <div class="hstat"><div class="hstat-val">16×</div><div class="hstat-label">100-pt games</div></div>
+  </div>
+</div>
+<div style="text-align:right;padding:10px 20px 16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray-3);letter-spacing:0.1em;text-transform:uppercase;border-top:1px solid var(--border-dim);">Created by Baker Smith</div>
+<script>
+function toggleNav() {
+  const links = document.getElementById('topnav-links');
+  const btn   = document.getElementById('nav-hamburger');
+  if (links) links.classList.toggle('open');
+  if (btn)   btn.classList.toggle('open');
+}
+</script>
+</body>
+</html>

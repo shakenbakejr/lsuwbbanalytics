@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Team Overview · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.record-hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px; align-items: center;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-3) 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+.record-big {
+  font-family: 'Oswald', sans-serif;
+  font-size: 72px;
+  color: var(--gold);
+  line-height: 1;
+}
+.record-details { }
+.record-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px; color: #fff;
+  margin-bottom: 6px;
+}
+.record-facts { display: flex; flex-direction: column; gap: 4px; }
+.record-fact {
+  font-size: 13px;
+  color: rgba(240,234,248,0.5);
+  font-weight: 300;
+}
+.record-fact strong { color: rgba(240,234,248,0.85); font-weight: 500; }
+.history-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 0.5px solid rgba(240,234,248,0.07);
+}
+.history-row:last-child { border: none; }
+.h-result {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  width: 22px; text-align: center;
+  padding: 2px 0;
+  border-radius: 4px;
+}
+.h-result.W { background: rgba(29,158,117,0.2); color: #1D9E75; }
+.h-result.L { background: rgba(216,90,48,0.2); color: #D85A30; }
+.h-opp { flex: 1; font-size: 13px; color: rgba(240,234,248,0.65); }
+.h-score { font-family: 'DM Mono', monospace; font-size: 12px; color: #fff; }
+.h-note { font-size: 10px; color: rgba(240,234,248,0.3); min-width: 80px; text-align: right; font-family: 'DM Mono'; }
+.milestone-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 0.5px solid rgba(240,234,248,0.07);
+}
+.milestone-item:last-child { border: none; }
+.milestone-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(253,208,35,0.1);
+  border: 0.5px solid rgba(253,208,35,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.milestone-text { font-size: 13px; color: rgba(240,234,248,0.65); line-height: 1.5; }
+.milestone-text strong { color: #fff; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html" class="active">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="page-header">
+      <div class="page-eyebrow">Team Overview</div>
+      <h1 class="page-title">2025–26 Season</h1>
+      <p class="page-subtitle">Final results · Team stats · Season milestones</p>
+    </div>
+
+    <div class="record-hero">
+      <div class="record-big">29–6</div>
+      <div class="record-details">
+        <div class="record-title">Sweet 16 · Coach Kim Mulkey · 5th year</div>
+        <div class="record-facts">
+          <div class="record-fact"><strong>SEC Record:</strong> 12–4 (4th in SEC)</div>
+          <div class="record-fact"><strong>NCAA Seed:</strong> #2 in Sacramento 2 Regional</div>
+          <div class="record-fact"><strong>Final AP Ranking:</strong> 8th</div>
+          <div class="record-fact"><strong>Sweet 16 exit:</strong> Lost to #3 Duke, 87–85</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-label">PPG</div><div class="metric-val gold">95.0</div><div class="metric-sub">1st nationally</div></div>
+      <div class="metric-card"><div class="metric-label">Opp PPG</div><div class="metric-val">61.1</div><div class="metric-sub">102nd nationally</div></div>
+      <div class="metric-card"><div class="metric-label">Margin</div><div class="metric-val gold">+33.9</div><div class="metric-sub">avg point diff</div></div>
+      <div class="metric-card"><div class="metric-label">ORtg</div><div class="metric-val">120.9</div><div class="metric-sub">1st nationally</div></div>
+      <div class="metric-card"><div class="metric-label">DRtg</div><div class="metric-val">77.8</div><div class="metric-sub">4th nationally</div></div>
+      <div class="metric-card"><div class="metric-label">100-pt games</div><div class="metric-val gold">16</div><div class="metric-sub">NCAA record</div></div>
+    </div>
+
+    <div class="two-col">
+      <div class="glass-card">
+        <div class="section-label">NCAA Tournament run</div>
+        <div>
+          <div class="history-row">
+            <span class="h-result W">W</span>
+            <span class="h-opp">vs. #15 Jacksonville</span>
+            <span class="h-score">116–58</span>
+            <span class="h-note">Round 1</span>
+          </div>
+          <div class="history-row">
+            <span class="h-result W">W</span>
+            <span class="h-opp">vs. #7 Texas Tech</span>
+            <span class="h-score">101–47</span>
+            <span class="h-note">Round 2</span>
+          </div>
+          <div class="history-row">
+            <span class="h-result L">L</span>
+            <span class="h-opp">vs. #3 Duke</span>
+            <span class="h-score">87–85</span>
+            <span class="h-note">Sweet 16</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="section-label">Offense breakdown</div>
+        <div>
+          <div class="stat-bar-row">
+            <span class="sbr-label">PPG</span>
+            <div class="sbr-track"><div class="sbr-fill" style="width:95%"></div></div>
+            <span class="sbr-val">95.0</span>
+          </div>
+          <div class="stat-bar-row">
+            <span class="sbr-label">ORtg</span>
+            <div class="sbr-track"><div class="sbr-fill" style="width:88%"></div></div>
+            <span class="sbr-val">120.9</span>
+          </div>
+          <div class="stat-bar-row">
+            <span class="sbr-label">100-pt games</span>
+            <div class="sbr-track"><div class="sbr-fill" style="width:80%"></div></div>
+            <span class="sbr-val">16</span>
+          </div>
+          <div class="stat-bar-row">
+            <span class="sbr-label">Opp PPG</span>
+            <div class="sbr-track"><div class="sbr-fill" style="width:35%"></div></div>
+            <span class="sbr-val">61.1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="section-label">Season milestones</div>
+      <div>
+        <div class="milestone-item">
+          <div class="milestone-icon">🏀</div>
+          <div class="milestone-text"><strong>NCAA record:</strong> First women's basketball team ever to record 16 games with 100+ points in a single season.</div>
+        </div>
+        <div class="milestone-item">
+          <div class="milestone-icon">📊</div>
+          <div class="milestone-text"><strong>Best offense in program history:</strong> 3,325 points in 35 games (95.0 PPG), surpassing the previous record of 3,257 (1977–78).</div>
+        </div>
+        <div class="milestone-item">
+          <div class="milestone-icon">🔥</div>
+          <div class="milestone-text"><strong>8-game 100-point streak</strong> to open the season — broke the SEC record of 6 previously held by 1982 Louisiana Tech (coached by Kim Mulkey as a player).</div>
+        </div>
+        <div class="milestone-item">
+          <div class="milestone-icon">⭐</div>
+          <div class="milestone-text"><strong>Three First Team All-SEC players</strong> — first time in program history. Only team in the SEC with multiple First Team honorees.</div>
+        </div>
+        <div class="milestone-item">
+          <div class="milestone-icon">🏆</div>
+          <div class="milestone-text"><strong>4th straight Sweet 16</strong> appearance under Coach Mulkey. Offensive Rating of 120.9 ranked 1st nationally.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+</script>
+<script>
+function toggleNav() {
+  const links = document.getElementById('topnav-links');
+  const btn   = document.getElementById('nav-hamburger');
+  links.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+// Close nav when a link is clicked (mobile)
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

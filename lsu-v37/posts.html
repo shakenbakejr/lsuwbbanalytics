@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Post Breakdown · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.pos-tabs { display:flex; gap:8px; margin-bottom:2rem; }
+.pos-tab {
+  padding:8px 20px; border-radius:20px;
+  border:0.5px solid rgba(240,234,248,0.1);
+  background:transparent; color:rgba(240,234,248,0.4);
+  font-family:'DM Sans',sans-serif; font-size:13px;
+  cursor:pointer; transition:all 0.15s; text-decoration:none;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.pos-tab:hover { color:#fff; border-color:rgba(240,234,248,0.3); }
+.pos-tab.active {  border-color:var(--purple); color:var(--gold); font-weight:500; }
+.pos-tag { font-size:10px; background:rgba(253,208,35,0.15); color:var(--gold); padding:2px 6px; border-radius:10px; font-family:'DM Mono',monospace; }
+
+.player-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:2rem; }
+.player-select-card {
+  padding:14px 16px; border-radius:10px;
+  background:rgba(255,255,255,0.02);
+  border:0.5px solid rgba(240,234,248,0.08);
+  cursor:pointer; transition:all 0.15s;
+}
+.player-select-card:hover { border-color:rgba(255,255,255,0.2); }
+.player-select-card.active { background:rgba(59,31,106,0.25); border-color:var(--purple); }
+.psc-num  { font-family:'Bebas Neue',sans-serif; font-size:22px; color:rgba(253,208,35,0.4); line-height:1; }
+.psc-name { font-size:13px; font-weight:500; color:#fff; margin-top:2px; }
+.psc-pos  { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-transform:uppercase; margin-top:3px; }
+.dual-badge { font-size:9px; background:rgba(29,158,117,0.2); color:#1D9E75; padding:2px 6px; border-radius:10px; font-family:'DM Mono',monospace; margin-top:4px; display:inline-block; }
+
+.stat-section { margin-bottom:2rem; }
+.chart-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:1.5rem; }
+@media(max-width:600px){ .chart-row { grid-template-columns:1fr; } }
+.chart-card { background:rgba(255,255,255,0.02); border:0.5px solid rgba(240,234,248,0.08); border-radius:10px; padding:18px 20px; }
+.chart-title { font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:14px; }
+.chart-wrap { position:relative; width:100%; height:200px; }
+
+.reb-breakdown { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:1.5rem; }
+.reb-card { background:rgba(255,255,255,0.03); border:0.5px solid rgba(240,234,248,0.07); border-radius:10px; padding:14px; text-align:center; }
+.reb-val   { font-family:'Bebas Neue',sans-serif; font-size:30px; color:var(--gold); line-height:1; }
+.reb-label { font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px; }
+.reb-sub   { font-size:11px; color:rgba(255,255,255,0.25); margin-top:2px; }
+
+.comparison-table { width:100%; border-collapse:collapse; }
+.comparison-table th { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.08em; padding:8px 12px; text-align:left; border-bottom:0.5px solid rgba(240,234,248,0.08); }
+.comparison-table td { padding:10px 12px; border-bottom:0.5px solid rgba(240,234,248,0.07); font-size:13px; color:rgba(240,234,248,0.75); }
+.comparison-table tr:last-child td { border:none; }
+.comparison-table tr:hover td { background:rgba(255,255,255,0.02); }
+.ct-name { font-weight:500; color:#fff; }
+.ct-best { color:var(--gold); font-family:'DM Mono',monospace; font-weight:500; }
+.bar-inline { display:inline-flex; align-items:center; gap:8px; width:100%; }
+.bar-inline-track { flex:1; height:4px; background:rgba(240,234,248,0.07); border-radius:10px; overflow:hidden; }
+.bar-inline-fill  { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--purple),var(--gold)); }
+
+.section-intro { font-size:13px; color:rgba(240,234,248,0.42); line-height:1.7; margin-bottom:1.25rem; font-weight:300; max-width:660px; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html" class="active">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="page-header">
+      <div class="page-eyebrow">Position Breakdown</div>
+      <h1 class="page-title">Post Players</h1>
+      <p class="page-subtitle">Rebounding · Blocks · Interior scoring efficiency · 2025–26 season</p>
+    </div>
+
+    <div class="pos-tabs">
+      <span class="pos-tab active">Post Players</span>
+      <a class="pos-tab" href="guards.html">Guard Players</a>
+    </div>
+
+    <div class="section-label" style="margin-bottom:10px;">Select player</div>
+    <p class="section-intro">ZaKiyah Johnson and Mikaylah Williams appear here due to their dual roles in LSU's frontcourt throughout the season.</p>
+    <div class="player-grid" id="player-grid"></div>
+
+    <!-- Rebounding breakdown -->
+    <div class="stat-section">
+      <div class="section-label">Rebounding</div>
+      <div class="reb-breakdown" id="reb-breakdown"></div>
+      <div class="glass-card" style="margin-bottom:1.5rem;">
+        <div class="chart-title">Rebounding comparison — all post players</div>
+        <div style="position:relative;width:100%;height:240px;">
+          <canvas id="rebChart" role="img" aria-label="Rebounding comparison bar chart">Rebounding chart.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Block analysis -->
+    <div class="stat-section">
+      <div class="section-label">Block analysis & rim protection</div>
+      <div class="glass-card" style="margin-bottom:1.5rem;">
+        <div class="chart-title">Blocks per game — all post players</div>
+        <div style="position:relative;width:100%;height:200px;">
+          <canvas id="blkChart" role="img" aria-label="Blocks per game chart">Blocks chart.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interior scoring -->
+    <div class="stat-section">
+      <div class="section-label">Interior scoring efficiency</div>
+      <div class="glass-card">
+        <table class="comparison-table" id="interior-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>PPG</th>
+              <th>FG%</th>
+              <th>FG makes/attempts</th>
+              <th>FT%</th>
+              <th>Efficiency</th>
+            </tr>
+          </thead>
+          <tbody id="interior-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/players.js"></script>
+<script>
+// Post players — includes dual-position players
+const POST_NUMS = [1, 13, 2, 11, 12]; // Joyner, Koval, Knox, ZaKiyah, Williams
+let currentPost = 0;
+let rebChart = null, blkChart = null;
+
+function getPostPlayers() {
+  return POST_NUMS.map(n => PLAYERS.find(p => p.num === n)).filter(Boolean);
+}
+
+function isDual(p) { return p.num === 11 || p.num === 12; }
+
+function renderPlayerGrid() {
+  const posts = getPostPlayers();
+  document.getElementById("player-grid").innerHTML = posts.map((p, i) => `
+    <div class="player-select-card${i === currentPost ? ' active' : ''}" onclick="selectPost(${i})">
+      <div class="psc-num">#${p.num}</div>
+      <div class="psc-name">${p.name}</div>
+      <div class="psc-pos">${p.pos} · ${p.year}</div>
+      ${isDual(p) ? '<div class="dual-badge">Dual position</div>' : ''}
+    </div>`).join("");
+}
+
+function renderRebBreakdown(p) {
+  const oreb = Math.round(p.totReb * 0.32);
+  const dreb = p.totReb - oreb;
+  document.getElementById("reb-breakdown").innerHTML = `
+    <div class="reb-card"><div class="reb-val">${p.rpg}</div><div class="reb-label">RPG</div><div class="reb-sub">Per game avg</div></div>
+    <div class="reb-card"><div class="reb-val">${p.totReb}</div><div class="reb-label">Total reb</div><div class="reb-sub">Full season</div></div>
+    <div class="reb-card"><div class="reb-val">${dreb}</div><div class="reb-label">Def reb</div><div class="reb-sub">Est. from totals</div></div>
+    <div class="reb-card"><div class="reb-val">${oreb}</div><div class="reb-label">Off reb</div><div class="reb-sub">Est. from totals</div></div>
+  `;
+}
+
+function renderRebChart() {
+  const posts = getPostPlayers();
+  if (rebChart) rebChart.destroy();
+  const ctx = document.getElementById("rebChart").getContext("2d");
+  rebChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: posts.map(p => p.name.split(' ')[0] + " " + p.name.split(' ').slice(-1)[0]),
+      datasets: [
+        { label: "Def Reb/G", data: posts.map(p => +(p.rpg * 0.68).toFixed(1)), backgroundColor: "rgba(59,31,106,0.7)", borderRadius: 4 },
+        { label: "Off Reb/G", data: posts.map(p => +(p.rpg * 0.32).toFixed(1)), backgroundColor: "rgba(253,208,35,0.7)", borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: "rgba(240,234,248,0.5)", font: { family: "DM Mono", size: 10 } } } },
+      scales: {
+        x: { stacked: true, ticks: { color: "rgba(240,234,248,0.4)", font: { family: "DM Mono", size: 10 } }, grid: { color: "rgba(255,255,255,0.04)" } },
+        y: { stacked: true, ticks: { color: "rgba(240,234,248,0.4)", font: { family: "DM Mono", size: 10 } }, grid: { color: "rgba(255,255,255,0.04)" } }
+      }
+    }
+  });
+}
+
+function renderBlkChart() {
+  const posts = getPostPlayers();
+  if (blkChart) blkChart.destroy();
+  const ctx = document.getElementById("blkChart").getContext("2d");
+  blkChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: posts.map(p => p.name.split(' ')[0] + " " + p.name.split(' ').slice(-1)[0]),
+      datasets: [{
+        label: "BPG",
+        data: posts.map(p => p.bpg),
+        backgroundColor: posts.map(p => p.bpg >= 1.0 ? "rgba(253,208,35,0.8)" : "rgba(59,31,106,0.6)"),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: "rgba(240,234,248,0.4)", font: { family: "DM Mono", size: 10 } }, grid: { color: "rgba(255,255,255,0.04)" } },
+        y: { ticks: { color: "rgba(240,234,248,0.6)", font: { family: "DM Mono", size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderInteriorTable() {
+  const posts = getPostPlayers().sort((a, b) => b.fgpct - a.fgpct);
+  const maxFG = Math.max(...posts.map(p => p.fgpct));
+  document.getElementById("interior-body").innerHTML = posts.map(p => {
+    const pct = Math.round((p.fgpct / maxFG) * 100);
+    const isTop = p.fgpct === maxFG;
+    return `<tr>
+      <td class="ct-name">${p.name}${isDual(p) ? ' <span class="dual-badge">dual</span>' : ''}</td>
+      <td class="m-val">${p.ppg}</td>
+      <td class="${isTop ? 'ct-best' : 'm-val'}">${p.fgpct}%</td>
+      <td>
+        <div class="bar-inline">
+          <div class="bar-inline-track"><div class="bar-inline-fill" style="width:${pct}%"></div></div>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(240,234,248,0.5);min-width:60px;">${p.fgm}/${p.fga}</span>
+        </div>
+      </td>
+      <td class="m-val">${p.ftpct}%</td>
+      <td class="m-val">${calcEfficiency(p)}</td>
+    </tr>`;
+  }).join("");
+}
+
+function selectPost(i) {
+  currentPost = i;
+  renderPlayerGrid();
+  renderRebBreakdown(getPostPlayers()[i]);
+}
+
+// Init
+renderPlayerGrid();
+renderRebBreakdown(getPostPlayers()[0]);
+renderRebChart();
+renderBlkChart();
+renderInteriorTable();
+</script>
+<script>
+function toggleNav() {
+  const links = document.getElementById('topnav-links');
+  const btn   = document.getElementById('nav-hamburger');
+  links.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+// Close nav when a link is clicked (mobile)
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

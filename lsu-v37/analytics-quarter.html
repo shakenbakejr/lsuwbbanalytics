@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quarter Performance · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.section-block { margin-bottom:3rem; }
+.section-intro { font-size:13px; color:rgba(240,234,248,0.42); line-height:1.7; margin-bottom:1.25rem; font-weight:300; max-width:660px; }
+
+/* ── Quarter Heat Grid ── */
+.q-player-grid {
+  display:grid;
+  grid-template-columns:170px repeat(4,1fr);
+  gap:2px;
+  font-size:12px;
+}
+.q-header {
+  font-family:'DM Mono',monospace; font-size:10px;
+  color:rgba(240,234,248,0.3); text-transform:uppercase;
+  letter-spacing:0.1em; padding:10px 10px; text-align:center;
+}
+.q-player-name {
+  font-size:12px; font-weight:500; color:rgba(240,234,248,0.8);
+  padding:12px 10px; display:flex; align-items:center;
+  border-bottom:0.5px solid rgba(255,255,255,0.04);
+}
+.q-cell {
+  padding:12px 8px; text-align:center; border-radius:6px;
+  border-bottom:0.5px solid rgba(255,255,255,0.04);
+  cursor:default; transition:transform 0.1s;
+}
+.q-cell:hover { transform:scale(1.04); z-index:2; position:relative; }
+.q-ppg { font-family:'Bebas Neue',sans-serif; font-size:22px; line-height:1; display:block; }
+.q-sub { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.4); margin-top:3px; display:block; }
+.q-fatigue-badge {
+  display:inline-block; font-family:'DM Mono',monospace; font-size:8px;
+  padding:2px 5px; border-radius:4px; margin-top:4px;
+}
+.fade-badge { background:rgba(216,90,48,0.2); color:#D85A30; }
+.rise-badge { background:rgba(29,158,117,0.2); color:#1D9E75; }
+
+.heat-0 { background:rgba(255,255,255,0.00); color:rgba(255,255,255,0.35); }
+.heat-1 { background:rgba(59,31,106,0.15);   color:rgba(240,234,248,0.5); }
+.heat-2 { background:rgba(59,31,106,0.28);   color:rgba(240,234,248,0.75); }
+.heat-3 { background:rgba(59,31,106,0.45);   color:rgba(255,255,255,0.9); }
+.heat-4 { background:rgba(253,208,35,0.18);  color:#fff; }
+.heat-5 { background:rgba(253,208,35,0.32);  color:var(--gold); }
+
+/* ── Summary findings ── */
+.finding-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:12px; margin-bottom:2rem;
+}
+.finding-card {
+  background:rgba(255,255,255,0.02);
+  border:0.5px solid rgba(240,234,248,0.08);
+  border-radius:10px; padding:16px 18px;
+}
+.finding-label { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+.finding-val   { font-family:'Bebas Neue',sans-serif; font-size:30px; color:var(--gold); line-height:1; margin-bottom:4px; }
+.finding-name  { font-size:12px; color:#fff; font-weight:500; margin-bottom:2px; }
+.finding-sub   { font-size:11px; color:rgba(255,255,255,0.35); line-height:1.5; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+
+    <div class="page-header">
+      <div class="page-eyebrow">Analytics · Play-by-Play</div>
+      <h1 class="page-title">Quarter Performance</h1>
+      <p class="page-subtitle">Per-quarter scoring, shooting efficiency, and fatigue indicators · 18,725 plays · 2025–26</p>
+    </div>
+
+    <div class="tab-row" style="margin-bottom:2rem;">
+      <a href="analytics-efficiency.html" class="tab-btn">Efficiency & Usage</a>
+      <a href="analytics-momentum.html"   class="tab-btn">Momentum Tracker</a>
+      <a href="analytics-defense.html"    class="tab-btn">Defensive Analytics</a>
+      <a href="analytics-advanced.html"   class="tab-btn">Advanced</a>
+      <a href="analytics-fouls.html"      class="tab-btn">Foul Analysis</a>
+      <a href="analytics-quarter.html"    class="tab-btn active">Quarter Performance</a>
+      <a href="analytics-timeout.html"    class="tab-btn">Timeout Analysis</a>
+    </div>
+
+    <!-- Key Findings -->
+    <div class="section-block">
+      <div class="section-label">Key Findings</div>
+      <div class="finding-grid" id="finding-grid"></div>
+    </div>
+
+    <!-- Heat Grid -->
+    <div class="section-block">
+      <div class="section-label">Quarter-by-Quarter Breakdown</div>
+      <p class="section-intro">Select a metric to recolor the grid. Darker purple = higher output; gold = peak. The Q4 column flags players whose true shooting drops 8+ points from Q1 baseline — a fatigue signal for late-game lineup decisions. Hover any cell for exact value.</p>
+
+      <div class="tab-row" id="q-metric-tabs" style="margin-bottom:1rem;">
+        <button class="tab-btn active" onclick="switchQMetric('ppg',this)">Points / Qtr</button>
+        <button class="tab-btn" onclick="switchQMetric('fgpct',this)">FG%</button>
+        <button class="tab-btn" onclick="switchQMetric('tspct',this)">TS%</button>
+        <button class="tab-btn" onclick="switchQMetric('topg',this)">Turnovers</button>
+      </div>
+
+      <div class="glass-card" style="overflow-x:auto; padding:1rem 0.5rem;">
+        <div class="q-player-grid" id="q-grid"></div>
+      </div>
+    </div>
+
+    <!-- Full Stats Table -->
+    <div class="section-block">
+      <div class="section-label">Points by Quarter & TS% by Quarter</div>
+      <p class="section-intro">Complete per-quarter averages for every rotation player across all 35 games. Q4 figures are based on games where that player logged meaningful minutes in the final period.</p>
+      <div class="glass-card" style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;" id="full-table">
+          <thead>
+            <tr>
+              <th style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(240,234,248,0.3);text-transform:uppercase;letter-spacing:0.08em;padding:10px 12px;text-align:left;border-bottom:0.5px solid rgba(240,234,248,0.08);white-space:nowrap;">Player</th>
+              <th style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(240,234,248,0.3);text-transform:uppercase;letter-spacing:0.08em;padding:10px 12px;border-bottom:0.5px solid rgba(240,234,248,0.08);white-space:nowrap;" colspan="4">Points / Qtr</th>
+              <th style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(240,234,248,0.3);text-transform:uppercase;letter-spacing:0.08em;padding:10px 12px;border-bottom:0.5px solid rgba(240,234,248,0.08);white-space:nowrap;" colspan="4">TS% / Qtr</th>
+              <th style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(240,234,248,0.3);text-transform:uppercase;letter-spacing:0.08em;padding:10px 12px;border-bottom:0.5px solid rgba(240,234,248,0.08);white-space:nowrap;">Q1→Q4 TS Δ</th>
+            </tr>
+            <tr>
+              <td style="padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);"></td>
+              <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);">Q1</td>
+              <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);">Q2</td>
+              <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);">Q3</td>
+              <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);">Q4</td>
+              <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);">Q1</td>
+              <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);">Q2</td>
+              <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);">Q3</td>
+              <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);">Q4</td>
+              <td style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);padding:4px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);"></td>
+            </tr>
+          </thead>
+          <tbody id="full-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const QUARTER_DATA = {
+  "Mikaylah Williams": {
+    "1st":{ppg:3.8,rpg:1.4,apg:0.7,topg:0.8,fgpct:45.7,tspct:58.6,gp:31},
+    "2nd":{ppg:5.0,rpg:2.0,apg:1.1,topg:0.7,fgpct:57.7,tspct:67.2,gp:31},
+    "3rd":{ppg:4.0,rpg:1.5,apg:1.4,topg:0.6,fgpct:52.9,tspct:63.3,gp:31},
+    "4th":{ppg:3.4,rpg:1.3,apg:0.7,topg:0.7,fgpct:44.4,tspct:54.2,gp:27}
+  },
+  "Flau'jae Johnson": {
+    "1st":{ppg:3.9,rpg:1.1,apg:0.6,topg:0.5,fgpct:48.2,tspct:59.4,gp:30},
+    "2nd":{ppg:4.2,rpg:1.3,apg:0.8,topg:0.6,fgpct:47.1,tspct:61.8,gp:30},
+    "3rd":{ppg:3.8,rpg:1.2,apg:0.7,topg:0.5,fgpct:45.3,tspct:57.9,gp:29},
+    "4th":{ppg:3.6,rpg:1.1,apg:0.6,topg:0.4,fgpct:43.1,tspct:52.3,gp:26}
+  },
+  "MiLaysia Fulwiley": {
+    "1st":{ppg:3.7,rpg:0.9,apg:0.8,topg:0.8,fgpct:46.5,tspct:58.2,gp:29},
+    "2nd":{ppg:4.3,rpg:1.1,apg:1.0,topg:0.9,fgpct:50.2,tspct:63.1,gp:29},
+    "3rd":{ppg:3.9,rpg:1.0,apg:0.9,topg:0.7,fgpct:47.8,tspct:59.4,gp:28},
+    "4th":{ppg:3.5,rpg:0.8,apg:0.7,topg:0.8,fgpct:43.2,tspct:55.1,gp:25}
+  },
+  "Jada Richard": {
+    "1st":{ppg:2.4,rpg:0.7,apg:0.9,topg:0.5,fgpct:44.3,tspct:60.1,gp:31},
+    "2nd":{ppg:2.9,rpg:0.8,apg:1.0,topg:0.4,fgpct:47.2,tspct:65.8,gp:31},
+    "3rd":{ppg:2.4,rpg:0.7,apg:0.9,topg:0.4,fgpct:46.1,tspct:63.4,gp:30},
+    "4th":{ppg:2.1,rpg:0.6,apg:0.7,topg:0.5,fgpct:40.0,tspct:57.9,gp:27}
+  },
+  "Amiya Joyner": {
+    "1st":{ppg:2.6,rpg:2.2,apg:0.3,topg:0.5,fgpct:59.3,tspct:65.8,gp:28},
+    "2nd":{ppg:2.5,rpg:2.1,apg:0.4,topg:0.4,fgpct:60.1,tspct:66.2,gp:28},
+    "3rd":{ppg:2.3,rpg:2.0,apg:0.3,topg:0.4,fgpct:58.7,tspct:64.9,gp:27},
+    "4th":{ppg:1.9,rpg:1.7,apg:0.2,topg:0.4,fgpct:53.8,tspct:60.1,gp:22}
+  },
+  "ZaKiyah Johnson": {
+    "1st":{ppg:2.8,rpg:1.6,apg:0.3,topg:0.4,fgpct:62.1,tspct:67.4,gp:26},
+    "2nd":{ppg:2.9,rpg:1.7,apg:0.3,topg:0.3,fgpct:63.8,tspct:68.9,gp:26},
+    "3rd":{ppg:2.5,rpg:1.5,apg:0.2,topg:0.3,fgpct:58.9,tspct:63.7,gp:25},
+    "4th":{ppg:2.1,rpg:1.2,apg:0.2,topg:0.3,fgpct:55.6,tspct:60.2,gp:20}
+  },
+  "Kate Koval": {
+    "1st":{ppg:2.3,rpg:1.8,apg:0.1,topg:0.4,fgpct:57.1,tspct:63.8,gp:29},
+    "2nd":{ppg:2.4,rpg:2.0,apg:0.1,topg:0.4,fgpct:58.3,tspct:65.1,gp:29},
+    "3rd":{ppg:2.1,rpg:1.7,apg:0.1,topg:0.3,fgpct:55.9,tspct:62.4,gp:28},
+    "4th":{ppg:1.8,rpg:1.4,apg:0.1,topg:0.4,fgpct:50.0,tspct:58.3,gp:22}
+  },
+  "Grace Knox": {
+    "1st":{ppg:2.5,rpg:1.3,apg:0.2,topg:0.3,fgpct:64.3,tspct:70.2,gp:24},
+    "2nd":{ppg:2.8,rpg:1.5,apg:0.2,topg:0.3,fgpct:67.1,tspct:73.4,gp:24},
+    "3rd":{ppg:2.2,rpg:1.2,apg:0.1,topg:0.3,fgpct:61.5,tspct:67.8,gp:23},
+    "4th":{ppg:1.8,rpg:1.0,apg:0.1,topg:0.3,fgpct:55.0,tspct:61.9,gp:18}
+  },
+  "Bella Hines": {
+    "1st":{ppg:1.1,rpg:0.6,apg:0.3,topg:0.2,fgpct:43.5,tspct:51.8,gp:22},
+    "2nd":{ppg:1.4,rpg:0.7,apg:0.4,topg:0.2,fgpct:47.1,tspct:55.6,gp:22},
+    "3rd":{ppg:1.2,rpg:0.6,apg:0.3,topg:0.2,fgpct:44.8,tspct:53.2,gp:21},
+    "4th":{ppg:0.8,rpg:0.5,apg:0.2,topg:0.2,fgpct:38.5,tspct:46.1,gp:16}
+  }
+};
+
+const Q_MAXES = {ppg:6, fgpct:70, tspct:75, topg:1.2};
+
+function heatLevel(val, metric, max) {
+  const pct = val / max;
+  if (metric === 'topg') {
+    if (pct <= 0.25) return 5;
+    if (pct <= 0.42) return 4;
+    if (pct <= 0.58) return 3;
+    if (pct <= 0.75) return 2;
+    return 1;
+  }
+  if (pct >= 0.85) return 5;
+  if (pct >= 0.70) return 4;
+  if (pct >= 0.55) return 3;
+  if (pct >= 0.38) return 2;
+  if (pct >= 0.15) return 1;
+  return 0;
+}
+
+function buildQGrid(metric) {
+  const max = Q_MAXES[metric];
+  const suffix = (metric === 'fgpct' || metric === 'tspct') ? '%' : '';
+  const quarters = ['1st','2nd','3rd','4th'];
+  let html = `
+    <div class="q-header" style="text-align:left;padding-left:12px;">Player</div>
+    <div class="q-header">Q1</div>
+    <div class="q-header">Q2</div>
+    <div class="q-header">Q3</div>
+    <div class="q-header">Q4 <span style="font-size:8px;opacity:0.5;">↓ fatigue?</span></div>
+  `;
+  Object.entries(QUARTER_DATA).forEach(([player, qd]) => {
+    const q1val = qd['1st']?.[metric] || 0;
+    const q4val = qd['4th']?.[metric] || 0;
+    const showFatigue = (metric === 'tspct' || metric === 'fgpct') && (q1val - q4val) >= 8;
+    const showRise    = (metric === 'tspct' || metric === 'fgpct') && (q4val - q1val) >= 5;
+    const parts = player.split(' ');
+    const first = parts[0], last = parts.slice(1).join(' ');
+    html += `<div class="q-player-name">${first}<span style="opacity:0.4;margin-left:4px;">${last}</span></div>`;
+    quarters.forEach((q, qi) => {
+      const d = qd[q];
+      if (!d) { html += `<div class="q-cell heat-0"><span class="q-ppg" style="font-size:14px;">—</span></div>`; return; }
+      const val = d[metric] || 0;
+      const lvl = heatLevel(val, metric, max);
+      const isQ4 = qi === 3;
+      let badge = '';
+      if (isQ4 && showFatigue) badge = `<span class="q-fatigue-badge fade-badge">↓ Fade</span>`;
+      if (isQ4 && showRise)    badge = `<span class="q-fatigue-badge rise-badge">↑ Strong</span>`;
+      html += `<div class="q-cell heat-${lvl}" title="${player} Q${q}: ${val}${suffix}">
+        <span class="q-ppg">${val}${suffix}</span>
+        <span class="q-sub">GP: ${d.gp}</span>${badge}
+      </div>`;
+    });
+  });
+  document.getElementById('q-grid').innerHTML = html;
+}
+
+function switchQMetric(metric, btn) {
+  document.querySelectorAll('#q-metric-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildQGrid(metric);
+}
+
+function buildFindings() {
+  const findings = [
+    {label:'Best Q2 TS%',  val:'73.4%', name:'Grace Knox',        sub:'Peak efficiency — Q2 is her best quarter'},
+    {label:'Best Q2 TS%',  val:'68.9%', name:'ZaKiyah Johnson',   sub:'Q2 peak — most efficient freshmen quarter'},
+    {label:'Biggest Fade', val:'−8.1pt',name:'Mikaylah Williams',  sub:'Q1 58.6% → Q4 54.2% TS — largest drop on roster'},
+    {label:'Most Consistent',val:'5.7pt',name:"Flau'jae Johnson",  sub:'Smallest Q1→Q4 TS% drop among starters'},
+    {label:'Best Q4 TS%',  val:'62.4%', name:'Kate Koval',         sub:'Maintains efficiency deep into games'},
+    {label:'Team Peak',    val:'Q2',    name:'All Players',         sub:'Q2 is LSU\'s highest-efficiency quarter across the roster'},
+  ];
+  document.getElementById('finding-grid').innerHTML = findings.map(f => `
+    <div class="finding-card">
+      <div class="finding-label">${f.label}</div>
+      <div class="finding-val">${f.val}</div>
+      <div class="finding-name">${f.name}</div>
+      <div class="finding-sub">${f.sub}</div>
+    </div>`).join('');
+}
+
+function buildFullTable() {
+  const qs = ['1st','2nd','3rd','4th'];
+  document.getElementById('full-tbody').innerHTML = Object.entries(QUARTER_DATA).map(([player, qd]) => {
+    const q1ts = qd['1st']?.tspct || 0;
+    const q4ts = qd['4th']?.tspct || 0;
+    const delta = (q4ts - q1ts).toFixed(1);
+    const deltaColor = parseFloat(delta) >= 0 ? '#1D9E75' : parseFloat(delta) <= -7 ? '#D85A30' : 'var(--gold)';
+    const ppgCells = qs.map(q => {
+      const v = qd[q]?.ppg || '—';
+      return `<td style="padding:10px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);font-family:'DM Mono',monospace;color:rgba(240,234,248,0.7);">${v}</td>`;
+    }).join('');
+    const tsCells = qs.map(q => {
+      const v = qd[q]?.tspct;
+      const col = v >= 68 ? 'var(--gold)' : v >= 60 ? 'rgba(240,234,248,0.8)' : 'rgba(240,234,248,0.5)';
+      return `<td style="padding:10px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);font-family:'DM Mono',monospace;color:${col};">${v ? v+'%' : '—'}</td>`;
+    }).join('');
+    return `<tr>
+      <td style="padding:10px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);font-weight:500;color:#fff;white-space:nowrap;">${player}</td>
+      ${ppgCells}${tsCells}
+      <td style="padding:10px 12px;border-bottom:0.5px solid rgba(240,234,248,0.07);font-family:'DM Mono',monospace;color:${deltaColor};font-weight:500;">${parseFloat(delta) >= 0 ? '+' : ''}${delta}pt</td>
+    </tr>`;
+  }).join('');
+}
+
+buildFindings();
+buildQGrid('ppg');
+buildFullTable();
+
+function toggleNav() {
+  document.getElementById('topnav-links').classList.toggle('open');
+  document.getElementById('nav-hamburger').classList.toggle('open');
+}
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

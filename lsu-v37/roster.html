@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>2026–27 Roster · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+
+/* ── Roster Summary Strip ─────────────────────── */
+.roster-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 2rem;
+}
+.rs-card {
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(240,234,248,0.07);
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: center;
+}
+.rs-val {
+  font-family: 'Oswald', sans-serif;
+  font-size: 30px; color: var(--gold); line-height: 1;
+}
+.rs-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: rgba(240,234,248,0.3);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px;
+}
+
+/* ── Filter Row ───────────────────────────────── */
+.filter-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 1.75rem;
+}
+.filter-btn {
+  padding: 6px 16px; border-radius: 10px;
+  border: 0.5px solid rgba(240,234,248,0.1);
+  background: transparent;
+  color: rgba(240,234,248,0.4);
+  font-family: 'DM Sans', sans-serif; font-size: 12px;
+  cursor: pointer; transition: all 0.15s;
+}
+.filter-btn:hover { color: #fff; border-color: rgba(240,234,248,0.3); }
+.filter-btn.active {  border-color: var(--purple); color: var(--gold); }
+
+/* ── Section Divider ──────────────────────────── */
+.roster-section-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 2rem 0 1rem;
+}
+.rsd-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--gold);
+  text-transform: uppercase; letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+.rsd-line { flex: 1; height: 0.5px; background: rgba(253,208,35,0.2); }
+.rsd-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: rgba(255,255,255,0.25);
+  white-space: nowrap;
+}
+
+/* ── Roster Grid ──────────────────────────────── */
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+/* ── Player Card ──────────────────────────────── */
+.player-card {
+  background: rgba(255,255,255,0.02);
+  border: 0.5px solid rgba(240,234,248,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+.player-card:hover { border-color: rgba(253,208,35,0.3); }
+.player-card.transfer { border-left: 2px solid var(--gold); }
+.player-card.returning { border-left: 2px solid var(--purple); }
+.player-card.hidden { display: none; }
+
+.card-top {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 16px 18px 14px;
+}
+.card-num {
+  font-family: 'Oswald', sans-serif;
+  font-size: 42px; color: rgba(253,208,35,0.18);
+  line-height: 1; min-width: 44px; text-align: center;
+  flex-shrink: 0;
+}
+.card-info { flex: 1; min-width: 0; }
+.card-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px; color: #fff; line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-role {
+  font-size: 12px; color: rgba(240,234,248,0.4);
+  margin-top: 3px; font-weight: 300; line-height: 1.4;
+}
+.card-badges {
+  display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;
+}
+.card-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: rgba(240,234,248,0.42);
+  background: rgba(240,234,248,0.07);
+  border: 0.5px solid rgba(240,234,248,0.08);
+  border-radius: 4px; padding: 2px 7px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.card-badge.gold { color: var(--gold); background: rgba(253,208,35,0.08); border-color: rgba(253,208,35,0.2); }
+.card-badge.purple { color: #c9a8ff; background: rgba(59,31,106,0.3); border-color: rgba(59,31,106,0.5); }
+
+/* ── Stat Strip (always visible) ─────────────── */
+.card-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 0.5px solid rgba(255,255,255,0.06);
+  padding: 10px 18px;
+  gap: 0;
+}
+.cs-item { text-align: center; }
+.cs-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px; color: #fff; line-height: 1;
+}
+.cs-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: rgba(255,255,255,0.28);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin-top: 3px;
+}
+
+/* ── Expanded Detail Panel ────────────────────── */
+.card-expand {
+  display: none;
+  padding: 0 18px 16px;
+  border-top: 0.5px solid rgba(255,255,255,0.06);
+  margin-top: 2px;
+}
+.card-expand.open { display: block; }
+
+.expand-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-top: 12px;
+}
+.eg-item { text-align: center; }
+.eg-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; color: var(--gold);
+}
+.eg-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: rgba(255,255,255,0.28);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.expand-bar-section { margin-bottom: 10px; }
+.expand-bar-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 0;
+}
+.ebr-lbl {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: rgba(255,255,255,0.35); min-width: 40px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.ebr-track {
+  flex: 1; height: 3px;
+  background: rgba(240,234,248,0.07); border-radius: 10px; overflow: hidden;
+}
+.ebr-fill {
+  height: 100%; border-radius: 10px;
+  background: linear-gradient(90deg, var(--purple), var(--gold));
+  transition: width 0.5s ease;
+}
+.ebr-val {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: rgba(240,234,248,0.6); min-width: 32px; text-align: right;
+}
+
+.expand-note {
+  font-size: 12px; color: rgba(255,255,255,0.35);
+  line-height: 1.6; font-weight: 300;
+  padding-top: 8px;
+  border-top: 0.5px solid rgba(240,234,248,0.07);
+}
+
+.expand-toggle {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: rgba(255,255,255,0.25);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  border-top: 0.5px solid rgba(240,234,248,0.07);
+  transition: color 0.15s;
+}
+.player-card:hover .expand-toggle { color: rgba(240,234,248,0.42); }
+.toggle-arrow { transition: transform 0.2s; font-size: 10px; }
+.toggle-arrow.open { transform: rotate(180deg); }
+
+/* ── Transfer badge on card ───────────────────── */
+.transfer-from {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: rgba(253,208,35,0.6);
+  margin-top: 4px;
+}
+.tf-arrow { color: var(--gold); }
+
+@media (max-width: 600px) {
+  .roster-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html" class="active">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+
+    <div class="page-header">
+      <div class="page-eyebrow">2026–27 Season Preview</div>
+      <h1 class="page-title">Current Roster</h1>
+      <p class="page-subtitle">Returning players · Incoming transfers · 2025–26 stats</p>
+    </div>
+
+    <!-- Summary Strip -->
+    <div class="roster-summary" id="roster-summary"></div>
+
+    <!-- Filters -->
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterRoster('all', this)">All Players</button>
+      <button class="filter-btn" onclick="filterRoster('returning', this)">Returning</button>
+      <button class="filter-btn" onclick="filterRoster('transfer', this)">Incoming Transfers</button>
+      <button class="filter-btn" onclick="filterRoster('G', this)">Guards</button>
+      <button class="filter-btn" onclick="filterRoster('F', this)">Forwards</button>
+      <button class="filter-btn" onclick="filterRoster('C', this)">Centers</button>
+    </div>
+
+    <!-- Returning Players -->
+    <div class="roster-section-divider" id="returning-divider">
+      <div class="rsd-label">Returning</div>
+      <div class="rsd-line"></div>
+      <div class="rsd-count" id="returning-count"></div>
+    </div>
+    <div class="roster-grid" id="returning-grid"></div>
+
+    <!-- Incoming Transfers -->
+    <div class="roster-section-divider" id="transfer-divider">
+      <div class="rsd-label">Incoming Transfers</div>
+      <div class="rsd-line"></div>
+      <div class="rsd-count" id="transfer-count"></div>
+    </div>
+    <div class="roster-grid" id="transfer-grid"></div>
+
+  </div>
+</div>
+
+<script>
+// ── Returning Players (2025-26 stats) ────────────────────────────────────────
+const RETURNING = [
+  {
+    name: "Mikaylah Williams", num: 12, pos: "SF/PG", posGroup: "G", year: "Junior → Senior", ht: "5'11\"",
+    hometown: "Bossier City, LA",
+    role: "Versatile scorer · Floor general · Three-level threat",
+    gp: 35, mpg: 28.5,
+    ppg: 14.2, rpg: 5.3, apg: 3.6, spg: 1.4, bpg: 0.2,
+    fgpct: 50.7, tppct: 42.0, ftpct: 83.9,
+    tpg: 2.4,
+    totPts: 498, totReb: 187, totAst: 127, totStl: 48,
+    note: "All-SEC First Team · Led team in assists, minutes, def. rebounds · Cheryl Miller Award finalist",
+    accolades: ["All-SEC First Team", "AP All-America HM", "Led team: AST, MIN, 3PM"]
+  },
+  {
+    name: "MiLaysia Fulwiley", num: 23, pos: "G", posGroup: "G", year: "Junior → Senior", ht: "5'10\"",
+    hometown: "Columbia, SC",
+    role: "Sixth-woman spark · Elite defender · Explosive scorer",
+    gp: 35, mpg: 22.7,
+    ppg: 14.6, rpg: 3.6, apg: 3.1, spg: 2.83, bpg: 1.4,
+    fgpct: 47.4, tppct: 32.6, ftpct: 78.1,
+    tpg: 2.4,
+    totPts: 511, totReb: 126, totAst: 124, totStl: 99,
+    note: "99 steals — 3rd all-time at LSU in a single season · 2nd in SEC, 11th nationally · Career-high 28 pts vs. Duke",
+    accolades: ["All-Louisiana 2nd Team", "99 steals — 3rd all-time LSU", "2nd SEC / 11th natl steals"]
+  },
+  {
+    name: "ZaKiyah Johnson", num: 11, pos: "F/G", posGroup: "F", year: "Freshman → Sophomore", ht: "6'0\"",
+    hometown: "Shelbyville, KY",
+    role: "Versatile two-way force · Post-guard hybrid",
+    gp: 34, mpg: 18.9,
+    ppg: 9.7, rpg: 5.6, apg: 1.0, spg: 0.8, bpg: 0.6,
+    fgpct: 59.9, tppct: 66.7, ftpct: 69.7,
+    tpg: 1.0,
+    totPts: 330, totReb: 189, totAst: 34, totStl: 28,
+    note: "59.9 FG% · Paradise Jam All-Tournament · USA U18 FIBA AmeriCup gold medalist · Top-15 recruit",
+    accolades: ["Paradise Jam All-Tournament", "59.9 FG% — extraordinary efficiency", "USA U18 FIBA gold medalist"]
+  },
+  {
+    name: "Kate Koval", num: 13, pos: "F/C", posGroup: "C", year: "Sophomore → Junior", ht: "6'5\"",
+    hometown: "Kyiv, Ukraine",
+    role: "Stretch big · Rim protector · Frontcourt anchor",
+    gp: 35, mpg: 16.6,
+    ppg: 8.3, rpg: 6.3, apg: 0.4, spg: 1.1, bpg: 1.2,
+    fgpct: 56.0, tppct: 0, ftpct: 75.2,
+    tpg: 1.3,
+    totPts: 292, totReb: 219, totAst: 15, totStl: 37,
+    note: "Career-high 22 pts vs. New Orleans · 1.2 BPG changes interior defense · All-ACC Freshman First Team at Notre Dame",
+    accolades: ["1.2 BPG — elite rim protection", "Career-high 22 pts vs. UNO", "All-ACC Freshman First Team (Notre Dame)"]
+  },
+  {
+    name: "Grace Knox", num: 2, pos: "F", posGroup: "F", year: "Freshman → Sophomore", ht: "6'2\"",
+    hometown: "Las Vegas, NV",
+    role: "Stretch forward · Physical rebounder · Interior scorer",
+    gp: 33, mpg: 18.5,
+    ppg: 8.8, rpg: 4.6, apg: 0.5, spg: 0.6, bpg: 0.7,
+    fgpct: 62.1, tppct: 0, ftpct: 74.7,
+    tpg: 1.0,
+    totPts: 291, totReb: 152, totAst: 18, totStl: 20,
+    note: "62.1 FG% — team high · 19 pts on 9-for-9 shooting vs. Texas A&M · 5-star recruit from #1 national class",
+    accolades: ["62.1 FG% — team high", "9-for-9 shooting vs. TAMU", "5-star recruit · #1 national class"]
+  },
+  {
+    name: "Meghan Yarnevich", num: 15, pos: "F", posGroup: "F", year: "Freshman → Sophomore", ht: "6'0\"",
+    hometown: "Potomac, MD",
+    role: "Reserve forward · Frontcourt depth · Development piece",
+    gp: 20, mpg: 6.3,
+    ppg: 2.1, rpg: 1.6, apg: 0.2, spg: 0.4, bpg: 0.1,
+    fgpct: 42.4, tppct: 0, ftpct: 56.5,
+    tpg: 0.4,
+    totPts: 41, totReb: 31, totAst: 4, totStl: 7,
+    note: "Reserve role · 10.3 RPG in high school · Physical interior presence in development",
+    accolades: ["Physical frontcourt reserve", "6.3 MPG / 42.4 FG%", "10.3 RPG in high school"]
+  }
+];
+
+// ── Incoming Transfers ────────────────────────────────────────────────────────
+const TRANSFERS = [
+  {
+    name: "Jada Williams", num: "TBD", pos: "PG", posGroup: "G", year: "Senior", ht: "5'8\"",
+    hometown: "Kansas City, MO",
+    from: "Iowa State (via Arizona)",
+    role: "Starting PG · Elite playmaker · Floor general",
+    gp: 32, mpg: 29.9,
+    ppg: 15.3, rpg: 3.5, apg: 7.7, spg: 1.0, bpg: 0.0,
+    fgpct: 41.7, tppct: 30.3, ftpct: 80.5,
+    tpg: 3.5,
+    totPts: 489, totReb: 111, totAst: 246, totStl: 31,
+    note: "ESPN's #10 portal player · 7.7 APG (Top 5 nationally) · Will fill Jada Richard's starting PG role",
+    accolades: ["All-Big 12 First Team", "Top 5 nationally — APG (7.7)", "246 total assists — elite playmaker"]
+  },
+  {
+    name: "Laila Reynolds", num: "TBD", pos: "G/W", posGroup: "F", year: "Senior", ht: "6'1\"",
+    hometown: "Prince George's County, MD",
+    from: "Florida (3 seasons)",
+    role: "Wing scorer · Perimeter defender · Driving threat",
+    gp: 33, mpg: 32.2,
+    ppg: 12.1, rpg: 3.4, apg: 1.9, spg: 1.7, bpg: 0.8,
+    fgpct: 42.8, tppct: 13.5, ftpct: 68.6,
+    tpg: 2.9,
+    totPts: 398, totReb: 113, totAst: 64, totStl: 55,
+    note: "McDonald's All-American · 96 career starts at Florida · 0.8 BPG elite for a guard/wing",
+    accolades: ["McDonald's All-American", "96 career starts at Florida", "0.8 BPG — elite for a wing"]
+  },
+  {
+    name: "Chloe Larry", num: "TBD", pos: "G", posGroup: "G", year: "Sophomore → Junior", ht: "5'8\"",
+    hometown: "Bossier City, LA",
+    from: "Tennessee Tech",
+    role: "Scoring guard · Perimeter threat · High-volume scorer",
+    gp: 27, mpg: 32.6,
+    ppg: 13.6, rpg: 3.9, apg: 2.4, spg: 1.1, bpg: 0.2,
+    fgpct: 36.9, tppct: 34.1, ftpct: 83.0,
+    tpg: 2.3,
+    totPts: 367, totReb: 106, totAst: 64, totStl: 29,
+    note: "Bossier City, LA native · 13.6 PPG / 3.9 RPG at Tennessee Tech · Season-high 28 pts vs. TNST",
+    accolades: ["13.6 PPG at Tennessee Tech", "Season-high 28 pts vs. TNST", "Hometown: Bossier City, LA"]
+  },
+  {
+    name: "Noa Morro", num: "TBD", pos: "F/C", posGroup: "C", year: "Junior", ht: "6'2\"",
+    hometown: "Spain (ESP)",
+    from: "BAXI Ferrol (EuroCup Women)",
+    role: "Frontcourt anchor · Interior scorer · International prospect",
+    gp: 18, mpg: 16.5,
+    ppg: 7.2, rpg: 4.3, apg: 1.3, spg: 0.8, bpg: 0.6,
+    fgpct: 49.5, tppct: 33.3, ftpct: 84.4,
+    tpg: 1.9,
+    totPts: 129, totReb: 78, totAst: 24, totStl: 14,
+    note: "FIBA U20 All-Star 5 (2022 & 2023) · 49.5 FG% / 84.4 FT% in EuroCup Women · 21-year-old international",
+    accolades: ["FIBA U20 All-Star 5 (2022 & 2023)", "49.5 FG% — elite efficiency", "EuroCup Women finalist"]
+  }
+];
+
+// ── Efficiency Score ──────────────────────────────────────────────────────────
+function calcEff(p) {
+  const fgBonus = p.fgpct ? (p.fgpct - 40) * 0.15 : 0;
+  const raw = (p.ppg * 1.0) + (p.rpg * 0.7) + (p.apg * 0.8) +
+              (p.spg * 1.2) + (p.bpg * 1.0) - (p.tpg * 0.8) + fgBonus;
+  return Math.min(100, Math.max(0, Math.round(((raw - 5) / 23) * 100)));
+}
+
+// ── Render Summary Strip ──────────────────────────────────────────────────────
+function renderSummary() {
+  const total = RETURNING.length + TRANSFERS.length;
+  const guards = [...RETURNING, ...TRANSFERS].filter(p => p.posGroup === 'G').length;
+  const forwards = [...RETURNING, ...TRANSFERS].filter(p => p.posGroup === 'F').length;
+  const centers = [...RETURNING, ...TRANSFERS].filter(p => p.posGroup === 'C').length;
+  const avgPpg = ([...RETURNING, ...TRANSFERS].reduce((a,p) => a + p.ppg, 0) / total).toFixed(1);
+
+  document.getElementById('roster-summary').innerHTML = `
+    <div class="rs-card"><div class="rs-val">${total}</div><div class="rs-lbl">Total Players</div></div>
+    <div class="rs-card"><div class="rs-val">${RETURNING.length}</div><div class="rs-lbl">Returning</div></div>
+    <div class="rs-card"><div class="rs-val">${TRANSFERS.length}</div><div class="rs-lbl">Transfers In</div></div>
+    <div class="rs-card"><div class="rs-val">${guards}</div><div class="rs-lbl">Guards</div></div>
+    <div class="rs-card"><div class="rs-val">${forwards}</div><div class="rs-lbl">Forwards</div></div>
+    <div class="rs-card"><div class="rs-val">${centers}</div><div class="rs-lbl">Centers</div></div>
+    <div class="rs-card"><div class="rs-val">${avgPpg}</div><div class="rs-lbl">Avg PPG (prev)</div></div>
+  `;
+}
+
+// ── Build a Player Card ───────────────────────────────────────────────────────
+function buildCard(p, type, index) {
+  const eff = calcEff(p);
+  const id = `card-${type}-${index}`;
+
+  const fromHtml = p.from ? `<div class="transfer-from"><span class="tf-arrow">→</span> From ${p.from}</div>` : '';
+
+  const statusBadge = type === 'transfer'
+    ? `<span class="card-badge gold">Incoming Transfer</span>`
+    : `<span class="card-badge purple">${p.year}</span>`;
+
+  return `
+    <div class="player-card ${type}" id="${id}" data-pos="${p.posGroup}" data-type="${type}" onclick="toggleCard('${id}')">
+      <div class="card-top">
+        <div class="card-num">${p.num}</div>
+        <div class="card-info">
+          <div class="card-name">${p.name}</div>
+          <div class="card-role">${p.role}</div>
+          ${fromHtml}
+          <div class="card-badges">
+            ${statusBadge}
+            <span class="card-badge">${p.pos}</span>
+            <span class="card-badge">${p.ht}</span>
+            <span class="card-badge">EFF ${eff}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick stat strip -->
+      <div class="card-stats">
+        <div class="cs-item"><div class="cs-val">${p.ppg}</div><div class="cs-lbl">PPG</div></div>
+        <div class="cs-item"><div class="cs-val">${p.rpg}</div><div class="cs-lbl">RPG</div></div>
+        <div class="cs-item"><div class="cs-val">${p.apg}</div><div class="cs-lbl">APG</div></div>
+        <div class="cs-item"><div class="cs-val">${p.spg}</div><div class="cs-lbl">SPG</div></div>
+        <div class="cs-item"><div class="cs-val">${p.fgpct}%</div><div class="cs-lbl">FG%</div></div>
+      </div>
+
+      <!-- Expanded panel -->
+      <div class="card-expand" id="expand-${id}">
+        <div class="expand-grid">
+          <div class="eg-item"><div class="eg-val">${p.gp}</div><div class="eg-lbl">GP</div></div>
+          <div class="eg-item"><div class="eg-val">${p.mpg}</div><div class="eg-lbl">MPG</div></div>
+          <div class="eg-item"><div class="eg-val">${p.bpg}</div><div class="eg-lbl">BPG</div></div>
+          <div class="eg-item"><div class="eg-val">${p.tpg}</div><div class="eg-lbl">TPG</div></div>
+          <div class="eg-item"><div class="eg-val">${p.totPts}</div><div class="eg-lbl">Tot Pts</div></div>
+          <div class="eg-item"><div class="eg-val">${p.totReb}</div><div class="eg-lbl">Tot Reb</div></div>
+          <div class="eg-item"><div class="eg-val">${p.totAst}</div><div class="eg-lbl">Tot Ast</div></div>
+          <div class="eg-item"><div class="eg-val">${p.totStl}</div><div class="eg-lbl">Tot Stl</div></div>
+        </div>
+
+        <div class="expand-bar-section">
+          ${makeBar('PPG', p.ppg, 20)}
+          ${makeBar('FG%', p.fgpct, 65)}
+          ${p.tppct > 0 ? makeBar('3PT%', p.tppct, 55) : ''}
+          ${makeBar('FT%', p.ftpct, 100)}
+        </div>
+
+        <div class="expand-note">${p.note}</div>
+      </div>
+
+      <div class="expand-toggle">
+        <span>Stats</span>
+        <span class="toggle-arrow" id="arrow-${id}">▾</span>
+      </div>
+    </div>
+  `;
+}
+
+function makeBar(label, val, max) {
+  const pct = Math.min(100, Math.round((val / max) * 100));
+  return `<div class="expand-bar-row">
+    <span class="ebr-lbl">${label}</span>
+    <div class="ebr-track"><div class="ebr-fill" style="width:${pct}%"></div></div>
+    <span class="ebr-val">${val}${label.includes('%') ? '%' : ''}</span>
+  </div>`;
+}
+
+function toggleCard(id) {
+  const expand = document.getElementById(`expand-${id}`);
+  const arrow  = document.getElementById(`arrow-${id}`);
+  expand.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// ── Render Grids ──────────────────────────────────────────────────────────────
+function renderGrids() {
+  document.getElementById('returning-grid').innerHTML =
+    RETURNING.map((p, i) => buildCard(p, 'returning', i)).join('');
+  document.getElementById('transfer-grid').innerHTML =
+    TRANSFERS.map((p, i) => buildCard(p, 'transfer', i)).join('');
+  document.getElementById('returning-count').textContent = `${RETURNING.length} players`;
+  document.getElementById('transfer-count').textContent  = `${TRANSFERS.length} players`;
+}
+
+// ── Filter ────────────────────────────────────────────────────────────────────
+function filterRoster(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const cards = document.querySelectorAll('.player-card');
+  cards.forEach(card => {
+    const type = card.dataset.type;
+    const pos  = card.dataset.pos;
+    let show = false;
+    if (filter === 'all') show = true;
+    else if (filter === 'returning') show = type === 'returning';
+    else if (filter === 'transfer')  show = type === 'transfer';
+    else if (filter === 'G') show = pos === 'G';
+    else if (filter === 'F') show = pos === 'F';
+    else if (filter === 'C') show = pos === 'C';
+    card.classList.toggle('hidden', !show);
+  });
+
+  // Show/hide section headers based on visible cards
+  const hasReturning = [...document.querySelectorAll('.player-card.returning')].some(c => !c.classList.contains('hidden'));
+  const hasTransfer  = [...document.querySelectorAll('.player-card.transfer')].some(c => !c.classList.contains('hidden'));
+  document.getElementById('returning-divider').style.display = hasReturning ? '' : 'none';
+  document.getElementById('transfer-divider').style.display  = hasTransfer  ? '' : 'none';
+}
+
+// ── Nav ───────────────────────────────────────────────────────────────────────
+function toggleNav() {
+  const links = document.getElementById('topnav-links');
+  const btn   = document.getElementById('nav-hamburger');
+  links.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderSummary();
+renderGrids();
+</script>
+</body>
+</html>

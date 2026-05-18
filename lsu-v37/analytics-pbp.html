@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Clutch Performance · LSU Tiger Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css"/>
+<style>
+.section-block { margin-bottom:3.5rem; }
+.section-intro { font-size:13px; color:rgba(240,234,248,0.42); line-height:1.7; margin-bottom:1.25rem; font-weight:300; max-width:660px; }
+
+/* ── Closing Five ── */
+.closing-five {
+  display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:1.5rem;
+}
+@media(max-width:700px){ .closing-five{ grid-template-columns:repeat(2,1fr); } }
+.cf-card {
+  background:rgba(59,31,106,0.12);
+  border:0.5px solid rgba(59,31,106,0.35);
+  border-radius:10px; padding:18px 14px;
+  transition:border-color 0.2s;
+}
+.cf-card:hover { border-color:rgba(253,208,35,0.4); }
+.cf-rank { font-family:'Bebas Neue',sans-serif; font-size:13px; color:rgba(255,255,255,0.25); letter-spacing:0.1em; margin-bottom:6px; }
+.cf-num  { font-family:'Bebas Neue',sans-serif; font-size:36px; color:var(--gold); line-height:1; }
+.cf-name { font-size:12px; color:#fff; font-weight:500; margin:6px 0 10px; line-height:1.3; }
+.cf-why  { font-size:11px; color:rgba(240,234,248,0.42); line-height:1.6; margin-bottom:10px; }
+.cf-stats { display:flex; flex-direction:column; gap:4px; }
+.cf-stat-row {
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'DM Mono',monospace; font-size:10px;
+}
+.cf-stat-label { color:rgba(240,234,248,0.3); text-transform:uppercase; letter-spacing:0.06em; }
+.cf-stat-val   { color:var(--gold); font-weight:500; }
+.cf-stat-val.good { color:#1D9E75; }
+.cf-stat-val.ok   { color:rgba(240,234,248,0.6); }
+.cf-stat-val.warn { color:#D85A30; }
+
+/* ── Clutch Table ── */
+.clutch-table { width:100%; border-collapse:collapse; }
+.clutch-table th {
+  font-family:'DM Mono',monospace; font-size:10px;
+  color:rgba(240,234,248,0.3); text-transform:uppercase;
+  letter-spacing:0.08em; padding:10px 14px;
+  text-align:left; border-bottom:0.5px solid rgba(240,234,248,0.08); white-space:nowrap;
+}
+.clutch-table td {
+  padding:12px 14px; border-bottom:0.5px solid rgba(240,234,248,0.07); vertical-align:middle;
+}
+.clutch-table tr:last-child td { border:none; }
+.clutch-table tr:hover td { background:rgba(255,255,255,0.02); }
+.c-name { font-weight:500; color:#fff; }
+.c-pos  { font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,234,248,0.3); margin-top:2px; }
+.c-val  { font-family:'DM Mono',monospace; font-size:13px; color:rgba(240,234,248,0.7); }
+.c-gold  { color:var(--gold) !important; font-weight:500; }
+.c-green { color:#1D9E75 !important; font-weight:500; }
+.c-red   { color:#D85A30 !important; font-weight:500; }
+.c-rank  { font-family:'Bebas Neue',sans-serif; font-size:24px; color:rgba(240,234,248,0.1); min-width:32px; }
+.star-row { background:rgba(253,208,35,0.04); border-left:2px solid var(--gold); }
+
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="topnav-logo" href="index.html">LSU ⬡ ANALYTICS</a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <a href="team.html">Team</a>
+    <a href="players.html">Players</a>
+    <a href="analytics-efficiency.html">Analytics</a>
+    <a href="guards.html">Guards</a>
+    <a href="posts.html">Posts</a>
+    <a href="explorer.html">Stat Exp</a>
+    <a href="game-explorer.html">Game Exp</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="transfers.html">Transfers</a>
+    <a href="roster.html">Roster</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+
+    <div class="page-header">
+      <div class="page-eyebrow">Analytics · Play-by-Play</div>
+      <h1 class="page-title">Clutch Performance</h1>
+      <p class="page-subtitle">Last 5 minutes · margin ≤5 · 9 clutch-situation games · 2025–26</p>
+    </div>
+
+    <!-- ══ 02. CLUTCH PERFORMANCE ═══════════════════════════════════════════ -->
+    <div class="section-block">
+      <div class="section-label">02 — Clutch Performance</div>
+      <p class="section-intro">Clutch is defined as the final 5 minutes of the 4th quarter with a score differential of 5 points or fewer. Every play meeting this threshold across 35 games is captured — representing LSU's highest-pressure moments of the season.</p>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem;">
+        <span class="badge badge-white">⏱ Q4, ≤5:00 remaining</span>
+        <span class="badge badge-white">📊 Margin ≤ 5 points</span>
+        <span class="badge badge-white">🎮 9 clutch-situation games</span>
+      </div>
+
+      <!-- Closing Five -->
+      <div class="section-label" style="margin-bottom:0.75rem;">Data-Backed Closing Five</div>
+      <p class="section-intro" style="margin-bottom:1.25rem;">Ranked by clutch True Shooting % among players with 2+ clutch game appearances. Each card shows the statistical case for that player's inclusion — efficiency, ball security, and rebounding under pressure.</p>
+      <div class="closing-five" id="closing-five"></div>
+
+      <!-- Full Table -->
+      <div class="section-label" style="margin-bottom:0.75rem;">All Players — Full Clutch Log</div>
+      <div class="glass-card" style="overflow-x:auto;">
+        <table class="clutch-table">
+          <thead><tr>
+            <th>#</th>
+            <th>Player</th>
+            <th>Clutch Pts</th>
+            <th>FGA</th>
+            <th>FG%</th>
+            <th>TS%</th>
+            <th>REB</th>
+            <th>TO</th>
+            <th>Clutch Games</th>
+          </tr></thead>
+          <tbody id="clutch-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    
+  </div>
+</div>
+
+<script src="js/players.js"></script>
+<script>
+
+// ── CLUTCH ────────────────────────────────────────────────────────────────────
+function buildClutch() {
+  const qualified = CLUTCH_DATA.filter(p => p.games >= 2 && p.why).sort((a,b) => b.tspct - a.tspct);
+  const all = [...CLUTCH_DATA].sort((a,b) => b.pts - a.pts);
+
+  // Closing Five cards
+  const RANKS = ['1ST','2ND','3RD','4TH','5TH'];
+  document.getElementById('closing-five').innerHTML = qualified.slice(0,5).map((p, i) => {
+    const tsClass = p.tspct >= 65 ? 'good' : p.tspct >= 50 ? 'ok' : 'warn';
+    const toClass = p.to === 0 ? 'good' : p.to <= 1 ? 'ok' : 'warn';
+    return `<div class="cf-card">
+      <div class="cf-rank">${RANKS[i]}</div>
+      <div class="cf-num">#${p.num}</div>
+      <div class="cf-name">${p.name}</div>
+      <div class="cf-why">${p.why}</div>
+      <div class="cf-stats">
+        <div class="cf-stat-row">
+          <span class="cf-stat-label">Clutch TS%</span>
+          <span class="cf-stat-val ${tsClass}">${p.tspct}%</span>
+        </div>
+        <div class="cf-stat-row">
+          <span class="cf-stat-label">FG%</span>
+          <span class="cf-stat-val ${tsClass}">${p.fgpct}%</span>
+        </div>
+        <div class="cf-stat-row">
+          <span class="cf-stat-label">Pts</span>
+          <span class="cf-stat-val ok">${p.pts}</span>
+        </div>
+        <div class="cf-stat-row">
+          <span class="cf-stat-label">Rebounds</span>
+          <span class="cf-stat-val ok">${p.reb}</span>
+        </div>
+        <div class="cf-stat-row">
+          <span class="cf-stat-label">Turnovers</span>
+          <span class="cf-stat-val ${toClass}">${p.to}</span>
+        </div>
+        <div class="cf-stat-row">
+          <span class="cf-stat-label">Games</span>
+          <span class="cf-stat-val ok">${p.games}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Full table
+  document.getElementById('clutch-body').innerHTML = all.map((p, i) => {
+    const tsColor = p.tspct >= 65 ? 'c-gold' : p.tspct >= 50 ? 'c-green' : p.tspct > 0 ? 'c-val' : 'c-red';
+    const toColor = p.to === 0 ? 'c-green' : 'c-val';
+    return `<tr class="${i===0?'star-row':''}">
+      <td class="c-rank">${i+1}</td>
+      <td><div class="c-name">${p.name}</div><div class="c-pos">#${p.num} · ${p.pos}</div></td>
+      <td class="c-val ${p.pts>=10?'c-gold':''}">${p.pts}</td>
+      <td class="c-val">${p.fga}</td>
+      <td class="c-val">${p.fgpct}%</td>
+      <td class="c-val ${tsColor}">${p.tspct > 0 ? p.tspct+'%' : '—'}</td>
+      <td class="c-val">${p.reb}</td>
+      <td class="c-val ${toColor}">${p.to}</td>
+      <td class="c-val" style="color:rgba(240,234,248,0.4);font-size:11px;">${p.games}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+buildClutch();
+
+function toggleNav() {
+  document.getElementById('topnav-links').classList.toggle('open');
+  document.getElementById('nav-hamburger').classList.toggle('open');
+}
+document.querySelectorAll('.topnav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('topnav-links').classList.remove('open');
+    document.getElementById('nav-hamburger').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
